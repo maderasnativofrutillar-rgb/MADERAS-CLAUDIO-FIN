@@ -25,7 +25,7 @@ export default function Home() {
             <p className="mx-auto max-w-[700px] text-lg md:text-xl">
               Artesanía en maderas nativas. Calidad y tradición desde el sur de Chile.
             </p>
-            <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
+            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white" asChild>
               <Link href="/#products">Explorar Productos</Link>
             </Button>
           </div>

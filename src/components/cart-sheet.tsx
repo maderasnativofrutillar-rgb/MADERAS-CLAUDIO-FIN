@@ -31,7 +31,7 @@ export function CartSheet() {
           {cartCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -right-2 -top-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-orange-600 text-white"
+              className="absolute -right-2 -top-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-orange-500 text-white"
             >
               {cartCount}
             </Badge>

@@ -39,8 +39,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
         <p className="mt-2 text-sm text-muted-foreground">{product.description}</p>
       </CardContent>
       <CardFooter className="flex justify-between items-center">
-        <CardDescription className="text-lg font-bold text-orange-600">{formatPrice(product.price)}</CardDescription>
-        <Button onClick={() => addToCart(product)} size="icon" className="bg-orange-600 hover:bg-orange-700 text-white">
+        <CardDescription className="text-lg font-bold text-orange-500">{formatPrice(product.price)}</CardDescription>
+        <Button onClick={() => addToCart(product)} size="icon" className="bg-orange-500 hover:bg-orange-600 text-white">
           <ShoppingCart className="h-4 w-4" />
           <span className="sr-only">Añadir al carrito</span>
         </Button>

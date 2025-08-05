@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { TreePine, Facebook, Instagram, Twitter, Phone } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 export function SiteFooter() {
   return (
@@ -47,23 +46,19 @@ export function SiteFooter() {
           <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
         </div>
       </div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href="https://wa.me/56912345678"
-              target="_blank"
-              className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors group"
-              aria-label="Contáctanos por WhatsApp"
-            >
-              <Phone size={24} />
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p>Escríbenos para ayudarte</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Link
+        href="https://wa.me/56912345678"
+        target="_blank"
+        className="fixed bottom-6 right-6 group"
+        aria-label="Contáctanos por WhatsApp"
+      >
+        <div className="flex items-center justify-center bg-green-500 text-white rounded-full shadow-lg transition-all duration-300 ease-in-out w-14 h-14 group-hover:w-56">
+          <Phone size={24} className="flex-shrink-0" />
+          <span className="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out max-w-0 group-hover:max-w-xs group-hover:ml-2">
+            Escríbenos para ayudarte
+          </span>
+        </div>
+      </Link>
     </footer>
   );
 }
