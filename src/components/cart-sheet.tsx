@@ -96,7 +96,7 @@ export function CartSheet() {
                   <span>Total</span>
                   <span>{formatPrice(cartTotal)}</span>
                 </div>
-                <Button asChild size="lg" className="w-full bg-accent hover:bg-accent/90">
+                <Button asChild size="lg" className="w-full">
                   <Link href="/checkout">Proceder al Pago</Link>
                 </Button>
               </div>

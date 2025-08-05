@@ -151,7 +151,7 @@ export default function CheckoutPage() {
                     )}
                   />
                 </div>
-                <Button type="submit" size="lg" className="w-full bg-accent hover:bg-accent/90">
+                <Button type="submit" size="lg" className="w-full">
                     Pagar con Flow {formatPrice(cartTotal)}
                 </Button>
               </form>
