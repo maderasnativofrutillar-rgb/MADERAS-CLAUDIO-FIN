@@ -322,7 +322,7 @@
     --popover: 60 56% 98%;
     --popover-foreground: 26 33% 20%;
 
-    --primary: 25 57% 41%;
+    --primary: 26 83% 53%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 25 30% 92%;
@@ -331,8 +331,8 @@
     --muted: 25 25% 85%;
     --muted-foreground: 25 25% 45%;
 
-    --accent: 24 97% 55%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 45 93% 55%;
+    --accent-foreground: 26 33% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -360,7 +360,7 @@
     --popover: 26 33% 10%;
     --popover-foreground: 60 56% 95%;
 
-    --primary: 25 57% 51%;
+    --primary: 26 83% 63%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 25 30% 22%;
@@ -369,8 +369,8 @@
     --muted: 25 25% 25%;
     --muted-foreground: 25 25% 65%;
 
-    --accent: 24 97% 65%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 45 93% 65%;
+    --accent-foreground: 26 33% 10%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
@@ -389,3 +389,4 @@
     @apply bg-background text-foreground;
   }
 }
+

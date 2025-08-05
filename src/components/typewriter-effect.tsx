@@ -47,7 +47,7 @@ export function TypewriterEffect({
   }, [text, isDeleting, loopNum, strings, typeSpeed, deleteSpeed, delay, typingSpeed]);
 
   return (
-    <h2 className="text-primary font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl min-h-[80px] sm:min-h-[100px]">
+    <h2 className="text-accent font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl min-h-[80px] sm:min-h-[100px]">
       {text}
       <span className="animate-pulse">|</span>
     </h2>
