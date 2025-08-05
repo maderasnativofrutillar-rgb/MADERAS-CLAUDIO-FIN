@@ -6,17 +6,20 @@ export default function AboutPage() {
       <div className="grid gap-12 md:grid-cols-2 md:gap-16">
         <div className="space-y-6">
           <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-            Sobre Madera Nativo Sur
+            Nuestra pasión por la madera natural
           </h1>
           <div className="space-y-4 text-muted-foreground text-lg">
             <p>
-              Madera Nativo Sur nació de la pasión por la carpintería y el profundo respeto por la naturaleza y los bosques del sur de Chile. Somos un taller familiar dedicado a transformar maderas nativas nobles en piezas únicas y duraderas que llevan consigo la esencia de su origen.
+              Somos una familia de Frutillar que decidió transformar un sueño en realidad: crear productos con alma, que hablen por sí solos.
             </p>
             <p>
-              Nuestra misión es rescatar las técnicas artesanales de trabajo en madera, combinándolas con un diseño contemporáneo y funcional. Cada producto que sale de nuestro taller es el resultado de horas de dedicación, cuidado en los detalles y un compromiso inquebrantable con la calidad.
+              Fundamos Nativo Sur en 2022 con un propósito claro: unir nuestras profesiones —yo, ingeniero en prevención de riesgos, y mi esposa, profesora— y convertirlas en una tienda llena de creatividad y propósito.
             </p>
             <p>
-              Trabajamos de manera sostenible, utilizando madera proveniente de bosques manejados de forma responsable y planes de reforestación. Creemos que la belleza de la madera nativa debe ser preservada para las futuras generaciones, y nuestro trabajo es un homenaje a esa convicción.
+              Trabajamos con maderas nativas de nuestra tierra, como el mañío, alerce y coihue, y también con maderas tradicionales como el pino, dando vida a cada diseño con mucha imaginación y pasión.
+            </p>
+             <p>
+              Desde nuestro hogar, con esfuerzo y dedicación, fabricamos productos únicos que emocionan y perduran. Cada tabla que sale de nuestro taller lleva consigo una historia… ¿Cuál será la tuya?
             </p>
           </div>
         </div>
