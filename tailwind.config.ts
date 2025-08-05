@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
-        headline: ['Alegreya', 'serif'],
+        body: ['Open Sans', 'sans-serif'],
+        headline: ['Lexend Deca', 'serif'],
       },
       colors: {
         orange: {
