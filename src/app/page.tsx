@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { products } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
+import { Instagram } from "lucide-react";
+import { TypewriterEffect } from "@/components/typewriter-effect";
 
 export default function Home() {
   return (
     <main className="flex-1">
-      <section className="relative w-full h-[calc(100vh-5rem)] text-white">
+      <section className="relative w-full h-screen text-white">
         <Image 
           src="https://placehold.co/1920x1080.png"
           alt="Taller de Madera Nativo Sur"
@@ -16,18 +18,31 @@ export default function Home() {
           priority
           data-ai-hint="wood workshop"
         />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/60" />
         <div className="relative container h-full px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
+          <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
+            <p className="font-light tracking-widest uppercase text-sm md:text-base">El estilo del sur directo a tu hogar</p>
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none">
-              Madera Nativo Sur
+              ¿Tienes una idea?
             </h1>
-            <p className="mx-auto max-w-[700px] text-lg md:text-xl">
-              Artesanía en maderas nativas. Calidad y tradición desde el sur de Chile.
-            </p>
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white" asChild>
-              <Link href="/#products">Explorar Productos</Link>
-            </Button>
+            <TypewriterEffect
+              strings={[
+                'Nosotros la hacemos realidad',
+                '¡Diseños únicos para ti!',
+              ]}
+            />
+            <div className="flex flex-col sm:flex-row gap-4">
+               <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
+                <Link href="/#products">Productos</Link>
+              </Button>
+              <Button size="lg" variant="secondary" asChild>
+                <Link href="/contacto">Contáctanos</Link>
+              </Button>
+            </div>
+            <div className="absolute bottom-10 flex flex-col items-center gap-2">
+                <p className="text-sm uppercase tracking-wider">Síguenos en Instagram para que estés actualizado de todas las novedades</p>
+                <Link href="#" className="text-white hover:text-primary"><Instagram size={24} /></Link>
+            </div>
           </div>
         </div>
       </section>
