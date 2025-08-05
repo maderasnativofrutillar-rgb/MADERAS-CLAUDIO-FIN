@@ -48,6 +48,31 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
+        <div className="container px-4 md:px-6">
+          <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="space-y-4 text-center lg:text-left">
+              <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl">Nuestra Esencia</h2>
+              <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mx-auto lg:mx-0">
+                Somos artesanos apasionados por la nobleza de la madera nativa del sur de Chile. Cada pieza es única, tallada con dedicación para llevar un trozo de la naturaleza a tu hogar.
+              </p>
+              <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Link href="/about">
+                  Conoce más
+                </Link>
+              </Button>
+            </div>
+            <Image
+              src="https://placehold.co/600x400.png"
+              alt="Maderas nobles"
+              width={600}
+              height={400}
+              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+              data-ai-hint="noble woods"
+            />
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

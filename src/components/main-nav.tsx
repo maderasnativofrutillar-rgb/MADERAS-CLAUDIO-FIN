@@ -41,7 +41,7 @@ export function MainNav({
       <NavLink href="/about">Sobre Nosotros</NavLink>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="group text-sm font-medium text-muted-foreground transition-colors hover:text-primary p-0 h-auto focus:ring-0 focus:ring-offset-0">
+            <Button variant="ghost" className="group text-sm font-medium text-muted-foreground transition-colors hover:text-primary p-0 h-auto focus:ring-0 focus:ring-offset-0 hover:bg-transparent focus-visible:ring-offset-0 focus-visible:ring-0">
                 <div className="flex flex-col">
                     <span>Tienda</span>
                     <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
