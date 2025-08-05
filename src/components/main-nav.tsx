@@ -10,6 +10,13 @@ import {
   } from "@/components/ui/dropdown-menu"
   import { Button } from "./ui/button"
   
+const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
+    <Link href={href} className="group text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+        <span>{children}</span>
+        <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
+    </Link>
+);
+
 
 export function MainNav({
   className,
@@ -26,20 +33,19 @@ export function MainNav({
       </Link>
       <Link
         href="/"
-        className="text-sm font-medium transition-colors hover:text-primary"
+        className="group text-sm font-medium transition-colors hover:text-primary"
       >
-        Home
+        <span>Home</span>
+        <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
       </Link>
-      <Link
-        href="/about"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Sobre Nosotros
-      </Link>
+      <NavLink href="/about">Sobre Nosotros</NavLink>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary p-0 h-auto">
-                Tienda
+            <Button variant="ghost" className="group text-sm font-medium text-muted-foreground transition-colors hover:text-primary p-0 h-auto focus:ring-0 focus:ring-offset-0">
+                <div className="flex flex-col">
+                    <span>Tienda</span>
+                    <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
+                </div>
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -49,18 +55,8 @@ export function MainNav({
             <DropdownMenuItem>Muebles</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Link
-        href="/empresas"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Empresas
-      </Link>
-      <Link
-        href="/contacto"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Contacto
-      </Link>
+      <NavLink href="/empresas">Empresas</NavLink>
+      <NavLink href="/contacto">Contacto</NavLink>
     </nav>
   )
 }
