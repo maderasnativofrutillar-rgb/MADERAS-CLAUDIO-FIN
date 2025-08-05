@@ -1,21 +1,32 @@
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { products } from "@/lib/constants";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="flex-1">
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-card">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+      <section className="relative w-full h-[calc(100vh-5rem)] text-white">
+        <Image 
+          src="https://placehold.co/1920x1080.png"
+          alt="Taller de Madera Nativo Sur"
+          fill
+          className="object-cover"
+          priority
+          data-ai-hint="wood workshop"
+        />
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative container h-full px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
+            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none">
               Madera Nativo Sur
             </h1>
-            <p className="mx-auto max-w-[700px] text-foreground/80 md:text-xl">
+            <p className="mx-auto max-w-[700px] text-lg md:text-xl">
               Artesanía en maderas nativas. Calidad y tradición desde el sur de Chile.
             </p>
-            <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white">
-              Explorar Productos
+            <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
+              <Link href="/#products">Explorar Productos</Link>
             </Button>
           </div>
         </div>
