@@ -54,8 +54,8 @@ export function CartSheet() {
           <span className="sr-only">Abrir carrito</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col pr-0 sm:max-w-lg">
-        <SheetHeader className="px-6 flex-row justify-between items-center">
+      <SheetContent className="flex w-full flex-col sm:max-w-lg">
+        <SheetHeader className="px-6 flex flex-row justify-between items-center">
           <SheetTitle>Carrito de Compras ({cartCount})</SheetTitle>
            {cartCount > 0 && (
             <Button
@@ -75,41 +75,43 @@ export function CartSheet() {
             <div className="flex-1 overflow-y-auto px-6">
               <div className="flex flex-col gap-4 py-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4">
-                    <div className="relative h-20 w-20 overflow-hidden rounded-md">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{item.name}</h3>
-                      <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        >
-                          -
-                        </Button>
-                        <span>{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        >
-                          +
-                        </Button>
+                  <div key={item.id} className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <h3 className="font-semibold text-sm line-clamp-2">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          >
+                            -
+                          </Button>
+                          <span className='w-4 text-center'>{item.quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          >
+                            +
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
-                      <Trash2 className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="h-8 w-8 self-start">
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
                 ))}
