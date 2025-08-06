@@ -13,10 +13,9 @@ import { cn } from "@/lib/utils"
 
 const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
     <NavigationMenuItem>
-        <Link href={href} legacyBehavior={false} passHref>
-            <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
+        <Link href={href} legacyBehavior passHref>
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 {children}
-                <span className="absolute bottom-0 left-0 block h-0.5 bg-primary transition-all duration-300 max-w-0 group-hover:max-w-full"></span>
             </NavigationMenuLink>
         </Link>
     </NavigationMenuItem>
@@ -42,18 +41,25 @@ export function MainNav({
                 <NavLink href="/">Home</NavLink>
                 <NavLink href="/about">Sobre Nosotros</NavLink>
                 <NavigationMenuItem>
-                <NavigationMenuTrigger className="group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent p-0 h-auto px-4 py-2">
+                <NavigationMenuTrigger>
                     Tienda
-                    <span className="absolute bottom-0 left-0 block h-0.5 bg-primary transition-all duration-300 max-w-0 group-hover:max-w-full"></span>
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
-                     <ul className="grid w-[250px] gap-1 p-4 md:w-[300px]">
-                        <li className="mb-2">
+                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                        <li className="row-span-3">
                              <NavigationMenuLink asChild>
-                                <Link href="/tienda" className="font-headline font-bold text-lg hover:text-primary transition-colors">
+                                <a
+                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                href="/tienda"
+                                >
+                                <div className="mb-2 mt-4 text-lg font-medium font-headline">
                                     Todos los Productos
-                                </Link>
-                             </NavigationMenuLink>
+                                </div>
+                                <p className="text-sm leading-tight text-muted-foreground">
+                                    Explora nuestra colección completa de artesanías en madera.
+                                </p>
+                                </a>
+                            </NavigationMenuLink>
                         </li>
                         {categories.map((component) => (
                             <ListItem
@@ -75,21 +81,23 @@ export function MainNav({
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
->(({ className, title, ...props }, ref) => {
+>(({ className, title, children, ...props }, ref) => {
   return (
     <li>
       <NavigationMenuLink asChild>
-        <Link
+        <a
           ref={ref}
           className={cn(
-            "group/item relative block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors text-muted-foreground hover:text-accent-foreground focus:text-accent-foreground",
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
           {...props}
         >
-          <span className="absolute left-0 top-0 h-full bg-primary/20 transition-all duration-300 ease-in-out w-0 group-hover/item:w-full"></span>
-          <div className="relative text-sm font-medium leading-none">{title}</div>
-        </Link>
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
       </NavigationMenuLink>
     </li>
   )
