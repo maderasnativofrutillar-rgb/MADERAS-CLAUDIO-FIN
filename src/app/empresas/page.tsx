@@ -3,6 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Box, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+
+const portfolioImages = [
+  { src: "https://placehold.co/600x400.png", alt: "Logo de empresa grabado en tabla", dataAiHint: "engraved logo board" },
+  { src: "https://placehold.co/600x400.png", alt: "Set de regalos corporativos en madera", dataAiHint: "corporate gift set" },
+  { src: "https://placehold.co/600x400.png", alt: "Tabla de picoteo personalizada", dataAiHint: "custom cheese board" },
+  { src: "https://placehold.co/600x400.png", alt: "Reconocimiento de madera con grabado láser", dataAiHint: "laser award wood" },
+  { src: "https://placehold.co/600x400.png", alt: "Cajas de madera con marca de empresa", dataAiHint: "branded wooden boxes" },
+];
+
 
 export default function EmpresasPage() {
   return (
@@ -62,6 +78,45 @@ export default function EmpresasPage() {
                     </Card>
                 </div>
             </div>
+        </div>
+      </section>
+
+      <section className="w-full py-12 md:py-24 bg-primary/5">
+        <div className="container px-4 md:px-6">
+          <h2 className="text-center font-headline text-3xl font-bold tracking-tighter sm:text-4xl mb-12">
+            Nuestro Portafolio
+          </h2>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full max-w-4xl mx-auto"
+          >
+            <CarouselContent>
+              {portfolioImages.map((image, index) => (
+                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                  <div className="p-1">
+                    <Card className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="aspect-video relative">
+                            <Image
+                                src={image.src}
+                                alt={image.alt}
+                                fill
+                                className="object-cover transition-transform duration-300 hover:scale-105"
+                                data-ai-hint={image.dataAiHint}
+                            />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12" />
+            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12" />
+          </Carousel>
         </div>
       </section>
       

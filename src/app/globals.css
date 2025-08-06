@@ -407,4 +407,47 @@
   .marquee {
     animation: marquee 20s linear infinite;
   }
+
+  .animate-highlight {
+    animation: highlight 1s ease-out 1s forwards;
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+
+  @keyframes highlight {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-in-out forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-in-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
