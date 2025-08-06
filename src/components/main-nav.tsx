@@ -12,14 +12,14 @@ import {
 import { cn } from "@/lib/utils"
 
 const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
-    <Link href={href} legacyBehavior passHref>
-        <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
-          <a>
-            {children}
-            <span className="absolute bottom-0 left-0 block h-0.5 bg-primary transition-all duration-300 max-w-0 group-hover:max-w-full"></span>
-          </a>
-        </NavigationMenuLink>
-    </Link>
+    <NavigationMenuItem>
+        <Link href={href} legacyBehavior passHref>
+            <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
+                {children}
+                <span className="absolute bottom-0 left-0 block h-0.5 bg-primary transition-all duration-300 max-w-0 group-hover:max-w-full"></span>
+            </NavigationMenuLink>
+        </Link>
+    </NavigationMenuItem>
 );
   
 const categories = [
@@ -39,12 +39,8 @@ export function MainNav({
   return (
     <NavigationMenu {...props}>
             <NavigationMenuList>
-                <NavigationMenuItem>
-                    <NavLink href="/">Home</NavLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <NavLink href="/about">Sobre Nosotros</NavLink>
-                </NavigationMenuItem>
+                <NavLink href="/">Home</NavLink>
+                <NavLink href="/about">Sobre Nosotros</NavLink>
                 <NavigationMenuItem>
                 <NavigationMenuTrigger className="group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent p-0 h-auto px-4 py-2">
                     Tienda
@@ -69,12 +65,8 @@ export function MainNav({
                     </ul>
                 </NavigationMenuContent>
                 </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <NavLink href="/empresas">Empresas</NavLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                    <NavLink href="/contacto">Contacto</NavLink>
-                </NavigationMenuItem>
+                <NavLink href="/empresas">Empresas</NavLink>
+                <NavLink href="/contacto">Contacto</NavLink>
             </NavigationMenuList>
     </NavigationMenu>
   )
