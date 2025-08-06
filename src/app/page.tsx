@@ -66,6 +66,14 @@ export default function Home() {
       <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
         <div className="container px-4 md:px-6">
           <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
+            <Image
+              src="https://placehold.co/600x400.png"
+              alt="Maderas nobles"
+              width={600}
+              height={400}
+              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+              data-ai-hint="noble woods"
+            />
             <div className="space-y-4 text-center lg:text-left">
               <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl">Nuestra Esencia</h2>
               <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mx-auto lg:mx-0">
@@ -77,14 +85,6 @@ export default function Home() {
                 </Link>
               </Button>
             </div>
-            <Image
-              src="https://placehold.co/600x400.png"
-              alt="Maderas nobles"
-              width={600}
-              height={400}
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-              data-ai-hint="noble woods"
-            />
           </div>
         </div>
       </section>
