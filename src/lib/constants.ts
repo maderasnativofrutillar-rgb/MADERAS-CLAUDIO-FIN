@@ -66,3 +66,13 @@ export const products: Product[] = [
         dataAiHint: "wooden rolling pin"
     },
 ];
+
+export const categories = [
+    "Tablas para Servir",
+    "Regalos Personalizados",
+    "Tablas de Cocina",
+    "Platos y Accesorios",
+    "Empresas y Regalos Corporativos",
+    "Tablas de Picoteo",
+    "Despedida de Soltera",
+];
