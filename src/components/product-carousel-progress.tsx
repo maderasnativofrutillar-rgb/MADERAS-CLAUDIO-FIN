@@ -9,7 +9,6 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { Progress } from '@/components/ui/progress';
 import { ProductCard } from './product-card';
 import { Product } from '@/lib/types';
 
@@ -19,41 +18,9 @@ interface CarouselWithProgressProps {
 
 export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
   const [api, setApi] = React.useState<CarouselApi>();
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
-  const [progress, setProgress] = React.useState(0);
-
-  React.useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
-
-    const updateProgress = () => {
-        const scrollProgress = api.scrollProgress();
-        const newProgress = Math.round(scrollProgress * 100);
-        setProgress(newProgress);
-    }
-    
-    api.on('select', () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-      updateProgress();
-    });
-
-    api.on('scroll', () => {
-      updateProgress();
-    });
-    
-    // Initial progress
-    updateProgress();
-
-  }, [api]);
-
+ 
   return (
-    <div>
-      <Carousel 
+    <Carousel 
         setApi={setApi} 
         className="w-full"
         opts={{
@@ -70,15 +37,10 @@ export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
-      <div className="py-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
-        <Progress value={progress} className="w-1/4 mx-auto" />
-        <p>
-            Producto {current} de {count}
-        </p>
-      </div>
-    </div>
+        <div className="flex items-center justify-center gap-4 mt-4">
+            <CarouselPrevious className="relative -left-0 top-0 translate-y-0" />
+            <CarouselNext className="relative -right-0 top-0 translate-y-0" />
+        </div>
+    </Carousel>
   );
 }
