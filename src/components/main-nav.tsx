@@ -28,17 +28,17 @@ export function MainNav() {
         <NavigationMenuList>
             {navLinks.map(({ href, label }) => (
                  <NavigationMenuItem key={href}>
-                    <Link href={href} legacyBehavior passHref>
-                        <NavigationMenuLink active={pathname === href} className={cn(navigationMenuTriggerStyle(), "relative group", pathname === href ? "text-foreground/60" : "text-foreground/60")}>
+                    <NavigationMenuLink asChild active={pathname === href} className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-foreground/60 hover:text-foreground/80")}>
+                        <Link href={href}>
                            {label}
-                           <span
+                            <span
                                 className={cn(
-                                    "absolute left-0 -bottom-1 h-0.5 bg-primary transition-all duration-300",
+                                    "absolute inset-x-0 bottom-0 h-0.5 bg-primary transition-all duration-300 ease-out",
                                     "w-0 group-hover:w-full"
                                 )}
                             />
-                        </NavigationMenuLink>
-                    </Link>
+                        </Link>
+                    </NavigationMenuLink>
                 </NavigationMenuItem>
             ))}
         </NavigationMenuList>
