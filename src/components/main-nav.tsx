@@ -8,33 +8,37 @@ import {
     NavigationMenuLink,
     NavigationMenuList,
     navigationMenuTriggerStyle,
-  } from "@/components/ui/navigation-menu"
-  import { usePathname } from "next/navigation";
-  
-  const navLinks = [
+} from "@/components/ui/navigation-menu"
+import { usePathname } from "next/navigation";
+
+const navLinks = [
     { href: "/", label: "Home" },
     { href: "/about", label: "Sobre Nosotros" },
     { href: "/tienda", label: "Tienda" },
     { href: "/empresas", label: "Empresas" },
     { href: "/contacto", label: "Contacto" },
-  ];
+];
 
 export function MainNav() {
-  const pathname = usePathname();
+    const pathname = usePathname();
 
-  return (
-    <NavigationMenu>
-      <NavigationMenuList>
-        {navLinks.map(({ href, label }) => (
-          <NavigationMenuItem key={href}>
-            <Link href={href} passHref legacyBehavior>
-              <NavigationMenuLink active={pathname === href} className={navigationMenuTriggerStyle()}>
-                {label}
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-        ))}
-      </NavigationMenuList>
-    </NavigationMenu>
-  )
+    return (
+        <NavigationMenu>
+            <NavigationMenuList>
+                {navLinks.map(({ href, label }) => (
+                    <NavigationMenuItem key={href}>
+                        <NavigationMenuLink
+                            asChild
+                            active={pathname === href}
+                            className={navigationMenuTriggerStyle()}
+                        >
+                            <Link href={href}>
+                                {label}
+                            </Link>
+                        </NavigationMenuLink>
+                    </NavigationMenuItem>
+                ))}
+            </NavigationMenuList>
+        </NavigationMenu>
+    );
 }
