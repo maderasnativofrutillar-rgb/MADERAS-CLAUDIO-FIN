@@ -12,10 +12,12 @@ import {
 import { cn } from "@/lib/utils"
 
 const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
-    <Link href={href} passHref>
-        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
+    <Link href={href} passHref legacyBehavior>
+        <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
+          <a>
             {children}
             <span className="absolute bottom-0 left-0 block h-0.5 bg-primary transition-all duration-300 max-w-0 group-hover:max-w-full"></span>
+          </a>
         </NavigationMenuLink>
     </Link>
 );
@@ -25,7 +27,7 @@ const categories = [
     { title: "Regalos Personalizados", href: "/tienda?categoria=regalos-personalizados"},
     { title: "Tablas de Cocina", href: "/tienda?categoria=tablas-de-cocina" },
     { title: "Platos y Accesorios", href: "/tienda?categoria=platos-y-accesorios"},
-    { title: "Empresas", href: "/tienda?categoria=empresas" },
+    { title: "Empresas y Regalos Corporativos", href: "/tienda?categoria=empresas" },
     { title: "Tablas de Picoteo", href: "/tienda?categoria=tablas-de-picoteo" },
     { title: "Despedida de Soltera", href: "/tienda?categoria=despedida-de-soltera" },
 ];
