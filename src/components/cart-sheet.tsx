@@ -16,6 +16,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from './ui/separator';
 
 const FREE_SHIPPING_THRESHOLD = 49000;
 
@@ -119,18 +120,8 @@ export function CartSheet() {
               </div>
             </div>
             
-            <SheetFooter className="p-6 flex flex-col gap-4 bg-background border-t mt-auto">
-               <div className='w-full space-y-2'>
-                    {amountForFreeShipping > 0 ? (
-                        <p className='text-center text-sm text-muted-foreground'>
-                            Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
-                        </p>
-                    ) : (
-                        <p className="text-center font-bold text-green-600">¡Felicidades, tienes envío gratis!</p>
-                    )}
-                    <Progress value={freeShippingProgress} className="h-2" />
-                </div>
-                
+            <SheetFooter className="p-6 flex flex-col gap-4 bg-secondary/30 mt-auto">
+                <Separator />
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{formatPrice(cartTotal)}</span>
@@ -147,6 +138,19 @@ export function CartSheet() {
                             <Link href="/tienda">Seguir Comprando</Link>
                         </Button>
                     </SheetTrigger>
+                </div>
+
+                <Separator />
+
+                <div className='w-full space-y-2'>
+                    {amountForFreeShipping > 0 ? (
+                        <p className='text-center text-sm text-muted-foreground'>
+                            Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
+                        </p>
+                    ) : (
+                        <p className="text-center font-bold text-green-600">¡Felicidades, tienes envío gratis!</p>
+                    )}
+                    <Progress value={freeShippingProgress} className="h-2" />
                 </div>
             </SheetFooter>
           </>
