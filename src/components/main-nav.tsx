@@ -34,9 +34,9 @@ export function MainNav() {
     }, [pathname]);
 
     return (
-        <nav ref={navRef} className="relative bg-secondary-foreground p-2 rounded-full shadow-inner">
+        <nav ref={navRef} className="relative bg-muted p-2 rounded-full shadow-inner">
             <div 
-                className="absolute top-2 bottom-2 bg-secondary rounded-full shadow-md transition-all duration-300 ease-in-out" 
+                className="absolute top-2 bottom-2 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out" 
                 style={indicatorStyle}
             />
             <div className="relative flex items-center justify-center space-x-2">
@@ -47,7 +47,7 @@ export function MainNav() {
                         ref={el => itemRefs.current[index] = el}
                         className={cn(
                             "relative z-10 flex flex-col items-center justify-center gap-1 w-20 h-12 rounded-full text-center transition-colors duration-300 ease-in-out",
-                            "text-secondary hover:text-primary",
+                            "text-muted-foreground hover:text-primary",
                             { "text-primary font-medium": pathname === href }
                         )}
                     >
