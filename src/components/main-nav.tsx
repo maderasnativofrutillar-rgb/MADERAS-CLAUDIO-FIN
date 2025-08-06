@@ -14,14 +14,14 @@ import {
   } from "@/components/ui/navigation-menu"
   
 const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
-    <Link href={href} legacyBehavior passHref>
-        <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
+    <NavigationMenuLink asChild>
+        <Link href={href} className={cn(navigationMenuTriggerStyle(), "group bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
             <div className="flex flex-col">
                 <span>{children}</span>
                 <span className="block max-w-0 group-hover:max-w-full transition-all duration-300 h-0.5 bg-primary"></span>
             </div>
-        </NavigationMenuLink>
-    </Link>
+        </Link>
+    </NavigationMenuLink>
 );
 
 const categories = [
