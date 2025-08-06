@@ -10,7 +10,6 @@ import {
     navigationMenuTriggerStyle,
   } from "@/components/ui/navigation-menu"
   import { usePathname } from "next/navigation";
-  import { cn } from "@/lib/utils";
   
   const navLinks = [
     { href: "/", label: "Home" },
@@ -28,7 +27,7 @@ export function MainNav() {
       <NavigationMenuList>
         {navLinks.map(({ href, label }) => (
           <NavigationMenuItem key={href}>
-            <Link href={href} legacyBehavior passHref>
+            <Link href={href} passHref legacyBehavior>
               <NavigationMenuLink active={pathname === href} className={navigationMenuTriggerStyle()}>
                 {label}
               </NavigationMenuLink>
