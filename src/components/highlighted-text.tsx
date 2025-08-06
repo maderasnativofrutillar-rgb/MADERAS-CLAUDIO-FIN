@@ -10,7 +10,7 @@ export function HighlightedText({ children, className }: HighlightedTextProps) {
     <span className={cn("relative inline-block", className)}>
       <span className="relative z-10">{children}</span>
       <span
-        className="absolute left-0 bottom-0 h-1/3 w-full bg-accent/40 rounded-sm -z-1 animate-highlight"
+        className="absolute left-0 bottom-0 h-full w-full bg-accent/40 rounded-sm -z-1 animate-highlight"
         aria-hidden="true"
       />
     </span>
