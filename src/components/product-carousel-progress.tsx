@@ -9,6 +9,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
+import { Progress } from "@/components/ui/progress"
 import { ProductCard } from './product-card';
 import { Product } from '@/lib/types';
 
@@ -18,7 +19,23 @@ interface CarouselWithProgressProps {
 
 export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
   const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0)
+  const [count, setCount] = React.useState(0)
  
+  React.useEffect(() => {
+    if (!api) {
+      return
+    }
+ 
+    setCount(api.scrollSnapList().length)
+    setCurrent(api.selectedScrollSnap() + 1)
+ 
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1)
+    })
+  }, [api])
+
+
   return (
     <Carousel 
         setApi={setApi} 
@@ -37,8 +54,9 @@ export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <div className="flex items-center justify-center gap-4 mt-4">
+        <div className="flex items-center justify-center gap-4 mt-8">
             <CarouselPrevious className="relative -left-0 top-0 translate-y-0" />
+            <Progress value={(current / count) * 100} className="w-1/3" />
             <CarouselNext className="relative -right-0 top-0 translate-y-0" />
         </div>
     </Carousel>
