@@ -6,7 +6,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -120,7 +119,7 @@ export function CartSheet() {
               </div>
             </div>
             
-            <SheetFooter className="p-6 flex flex-col gap-4 bg-secondary/30 mt-auto">
+            <div className="p-6 flex flex-col gap-4 border-t bg-background">
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
@@ -152,7 +151,7 @@ export function CartSheet() {
                     )}
                     <Progress value={freeShippingProgress} className="h-2" />
                 </div>
-            </SheetFooter>
+            </div>
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center px-6">
