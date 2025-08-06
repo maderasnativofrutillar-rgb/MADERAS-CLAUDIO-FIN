@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -23,7 +22,7 @@ export function MainNav() {
                     key={href}
                     href={href}
                     className={cn(
-                        "transition-colors hover:text-primary relative",
+                        "transition-colors hover:text-primary relative group",
                         pathname === href ? "text-primary" : "text-foreground/60"
                     )}
                 >
@@ -31,7 +30,8 @@ export function MainNav() {
                     <span
                         className={cn(
                             "absolute left-0 -bottom-1 h-0.5 bg-primary transition-all duration-300",
-                            pathname === href ? "w-full" : "w-0 group-hover:w-full"
+                            "w-0 group-hover:w-full",
+                            { "w-full": pathname === href }
                         )}
                     />
                 </Link>
