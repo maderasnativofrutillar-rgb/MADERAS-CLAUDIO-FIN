@@ -54,8 +54,8 @@ export function CartSheet() {
           <span className="sr-only">Abrir carrito</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg">
-        <SheetHeader className="px-6 flex flex-row justify-between items-center">
+      <SheetContent className="flex w-full flex-col p-0 sm:max-w-lg">
+        <SheetHeader className="px-6 pt-6 flex flex-row justify-between items-center">
           <SheetTitle>Carrito de Compras ({cartCount})</SheetTitle>
            {cartCount > 0 && (
             <Button
@@ -72,12 +72,12 @@ export function CartSheet() {
         
         {cartCount > 0 ? (
           <>
-            <div className="flex-1 overflow-y-auto px-6">
-              <div className="flex flex-col gap-4 py-4">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="flex flex-col gap-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
+                  <div key={item.id} className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border">
                         <Image
                           src={item.image}
                           alt={item.name}
@@ -98,7 +98,7 @@ export function CartSheet() {
                           >
                             -
                           </Button>
-                          <span className='w-4 text-center'>{item.quantity}</span>
+                          <span className='w-4 text-center font-medium'>{item.quantity}</span>
                           <Button
                             variant="outline"
                             size="icon"
@@ -110,7 +110,7 @@ export function CartSheet() {
                         </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="h-8 w-8 self-start">
+                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="h-8 w-8 flex-shrink-0">
                       <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
@@ -118,15 +118,8 @@ export function CartSheet() {
               </div>
             </div>
             
-            <SheetFooter className="p-6 flex flex-col gap-4 bg-background border-t">
-                <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>{formatPrice(cartTotal)}</span>
-                </div>
-
-                <Separator />
-
-                <div className="text-center text-sm text-muted-foreground p-3 rounded-md bg-secondary">
+            <SheetFooter className="p-6 flex flex-col gap-4 bg-background border-t mt-auto">
+                <div className="text-center text-sm text-muted-foreground">
                     {amountForFreeShipping > 0 ? (
                     <p>
                         Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
@@ -134,6 +127,13 @@ export function CartSheet() {
                     ) : (
                     <p className="font-bold text-green-600">¡Felicidades, tienes envío gratis!</p>
                     )}
+                </div>
+
+                <Separator />
+                
+                <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>{formatPrice(cartTotal)}</span>
                 </div>
 
                 <div className="flex flex-col gap-2">
