@@ -15,13 +15,28 @@ import { useCart } from '@/context/cart-context';
 import { ShoppingCart, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+
+const FREE_SHIPPING_THRESHOLD = 49000;
 
 export function CartSheet() {
-  const { cartItems, removeFromCart, updateQuantity, cartCount, cartTotal } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, cartCount, cartTotal, clearCart } = useCart();
+  const { toast } = useToast();
+
+  const handleClearCart = () => {
+    clearCart();
+    toast({
+      title: "Carrito vaciado",
+      description: "Todos los productos han sido eliminados del carrito.",
+    });
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
   };
+  
+  const amountForFreeShipping = FREE_SHIPPING_THRESHOLD - cartTotal;
+
 
   return (
     <Sheet>
@@ -40,8 +55,19 @@ export function CartSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col pr-0 sm:max-w-lg">
-        <SheetHeader className="px-6">
+        <SheetHeader className="px-6 flex-row justify-between items-center">
           <SheetTitle>Carrito de Compras ({cartCount})</SheetTitle>
+           {cartCount > 0 && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleClearCart}
+              className="h-8 w-8"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Vaciar carrito</span>
+            </Button>
+          )}
         </SheetHeader>
         <Separator />
         {cartCount > 0 ? (
@@ -89,17 +115,34 @@ export function CartSheet() {
                 ))}
               </div>
             </div>
-            <Separator />
-            <SheetFooter className="p-6">
-              <div className="flex flex-col gap-4 w-full">
+            
+            <SheetFooter className="p-6 pt-0 flex flex-col gap-4 bg-background">
+                <Separator className="mb-4" />
                 <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>{formatPrice(cartTotal)}</span>
+                    <span>Total</span>
+                    <span>{formatPrice(cartTotal)}</span>
                 </div>
-                <Button asChild size="lg" className="w-full">
-                  <Link href="/checkout">Proceder al Pago</Link>
-                </Button>
-              </div>
+
+                <div className="text-center text-sm text-muted-foreground">
+                    {amountForFreeShipping > 0 ? (
+                    <p>
+                        Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
+                    </p>
+                    ) : (
+                    <p className="font-bold text-green-600">¡Felicidades, tienes envío gratis!</p>
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    <Button asChild size="lg" className="w-full">
+                        <Link href="/checkout">Proceder al Pago</Link>
+                    </Button>
+                    <SheetTrigger asChild>
+                        <Button asChild size="lg" variant="outline" className="w-full">
+                            <Link href="/tienda">Seguir Comprando</Link>
+                        </Button>
+                    </SheetTrigger>
+                </div>
             </SheetFooter>
           </>
         ) : (
@@ -109,7 +152,7 @@ export function CartSheet() {
             <p className="text-muted-foreground">Agrega productos para comenzar a comprar.</p>
             <SheetTrigger asChild>
                 <Button asChild>
-                    <Link href="/#products">Explorar Productos</Link>
+                    <Link href="/tienda">Explorar Productos</Link>
                 </Button>
             </SheetTrigger>
           </div>

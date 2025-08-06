@@ -41,10 +41,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { ...product, quantity: 1 }];
     });
-    toast({
-      title: "Producto añadido",
-      description: `${product.name} ha sido añadido al carrito.`,
-    })
+    // toast({
+    //   title: "Producto añadido",
+    //   description: `${product.name} ha sido añadido al carrito.`,
+    // })
   };
 
   const removeFromCart = (productId: string) => {
