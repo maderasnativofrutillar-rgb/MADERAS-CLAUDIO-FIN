@@ -29,9 +29,8 @@ export function MainNav() {
                     {label}
                     <span
                         className={cn(
-                            "absolute left-0 -bottom-1 h-0.5 bg-primary transition-all duration-300",
-                            "w-0 group-hover:w-full",
-                            { "w-full": pathname === href }
+                            "absolute left-0 -bottom-1 h-0.5 bg-primary transition-all duration-300 w-0 group-hover:w-full",
+                             pathname === href ? "w-full" : "w-0"
                         )}
                     />
                 </Link>
