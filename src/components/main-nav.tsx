@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils"
 
 const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
     <NavigationMenuItem>
-        <Link href={href} passHref asChild>
+        <Link href={href} legacyBehavior passHref>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 {children}
             </NavigationMenuLink>
