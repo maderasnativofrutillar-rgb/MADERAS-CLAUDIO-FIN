@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { products, categories } from '@/lib/constants';
+import { products } from '@/lib/constants';
 import { ProductCard } from '@/components/product-card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,6 +10,16 @@ import { Label } from '@/components/ui/label';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Product } from '@/lib/types';
+
+const categories = [
+    "Tablas para Servir",
+    "Regalos Personalizados",
+    "Tablas de Cocina",
+    "Platos y Accesorios",
+    "Empresas y Regalos Corporativos",
+    "Tablas de Picoteo",
+    "Despedida de Soltera",
+];
 
 function slugify(text: string) {
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
