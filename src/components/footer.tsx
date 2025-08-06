@@ -52,9 +52,9 @@ export function SiteFooter() {
         className="fixed bottom-6 right-6 group"
         aria-label="Contáctanos por WhatsApp"
       >
-        <div className="flex items-center justify-center bg-green-500 text-white rounded-full shadow-lg transition-all duration-300 ease-in-out w-14 h-14 group-hover:w-56">
+        <div className="flex items-center justify-center bg-green-500 text-white rounded-full shadow-lg transition-all duration-300 ease-in-out w-14 h-14 group-hover:w-64 group-hover:px-4">
           <Phone size={24} className="flex-shrink-0" />
-          <span className="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out max-w-0 group-hover:max-w-xs group-hover:ml-2">
+          <span className="overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out max-w-0 font-bold group-hover:max-w-xs group-hover:ml-3">
             Escríbenos para ayudarte
           </span>
         </div>

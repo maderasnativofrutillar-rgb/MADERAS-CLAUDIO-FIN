@@ -2,14 +2,8 @@
 
 import * as React from "react"
 import Link from "next/link"
-import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
     { href: "/", label: "Home" },
@@ -23,22 +17,25 @@ export function MainNav() {
     const pathname = usePathname();
 
     return (
-        <NavigationMenu>
-            <NavigationMenuList>
-                {navLinks.map(({ href, label }) => (
-                    <NavigationMenuItem key={href}>
-                        <NavigationMenuLink
-                            asChild
-                            active={pathname === href}
-                            className={navigationMenuTriggerStyle()}
-                        >
-                            <Link href={href}>
-                                {label}
-                            </Link>
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                ))}
-            </NavigationMenuList>
-        </NavigationMenu>
+        <nav className="flex items-center space-x-6 text-sm font-medium">
+            {navLinks.map(({ href, label }) => (
+                <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                        "transition-colors hover:text-primary relative",
+                        pathname === href ? "text-primary" : "text-foreground/60"
+                    )}
+                >
+                    {label}
+                    <span
+                        className={cn(
+                            "absolute left-0 -bottom-1 h-0.5 bg-primary transition-all duration-300",
+                            pathname === href ? "w-full" : "w-0 group-hover:w-full"
+                        )}
+                    />
+                </Link>
+            ))}
+        </nav>
     );
 }

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { TreePine, User } from "lucide-react";
 import { MainNav } from "./main-nav";
 import { CartSheet } from "./cart-sheet";
-import { Button } from "./ui/button";
 import { AnnouncementBar } from "./announcement-bar";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./ui/button";
