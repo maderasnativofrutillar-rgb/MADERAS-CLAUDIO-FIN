@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 
 const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
     <NavigationMenuItem>
-        <Link href={href} passHref>
+        <Link href={href} legacyBehavior={false} passHref>
             <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "group relative bg-transparent text-sm font-medium text-muted-foreground transition-colors hover:text-primary hover:bg-transparent focus:bg-transparent focus:text-primary active:bg-transparent")}>
                 {children}
                 <span className="absolute bottom-0 left-0 block h-0.5 bg-primary transition-all duration-300 max-w-0 group-hover:max-w-full"></span>
@@ -75,11 +75,11 @@ export function MainNav({
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
+>(({ className, title, ...props }, ref) => {
   return (
     <li>
       <NavigationMenuLink asChild>
-        <a
+        <Link
           ref={ref}
           className={cn(
             "group/item relative block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors text-muted-foreground hover:text-accent-foreground focus:text-accent-foreground",
@@ -89,7 +89,7 @@ const ListItem = React.forwardRef<
         >
           <span className="absolute left-0 top-0 h-full bg-primary/20 transition-all duration-300 ease-in-out w-0 group-hover/item:w-full"></span>
           <div className="relative text-sm font-medium leading-none">{title}</div>
-        </a>
+        </Link>
       </NavigationMenuLink>
     </li>
   )
