@@ -5,8 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Instagram } from "lucide-react";
 import { TypewriterEffect } from "@/components/typewriter-effect";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function Home() {
+  const featuredProducts = products.slice(0, 8);
+
   return (
     <main className="flex-1">
       <section className="relative w-full h-screen text-white">
@@ -56,19 +59,35 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-12">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+          <div className="mt-12">
+             <Carousel 
+                opts={{
+                    align: "start",
+                    loop: true,
+                }}
+                className="w-full"
+             >
+                <CarouselContent>
+                    {featuredProducts.map((product) => (
+                    <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4">
+                        <div className="p-1">
+                            <ProductCard product={product} />
+                        </div>
+                    </CarouselItem>
+                    ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
           </div>
         </div>
       </section>
       <section className="w-full py-12 md:py-24 lg:py-32 bg-secondary/30">
         <div className="container px-4 md:px-6">
           <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-4 text-center lg:text-left">
+            <div className="space-y-4">
               <h2 className="text-3xl font-bold font-headline tracking-tighter sm:text-4xl md:text-5xl">Nuestra Esencia</h2>
-              <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mx-auto lg:mx-0">
+              <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 Somos artesanos apasionados por la nobleza de la madera nativa del sur de Chile. Cada pieza es única, tallada con dedicación para llevar un trozo de la naturaleza a tu hogar.
               </p>
               <Button asChild>

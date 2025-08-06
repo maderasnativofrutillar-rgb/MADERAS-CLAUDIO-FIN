@@ -17,6 +17,7 @@ export default function ProductDetailPage() {
 
   const product = products.find((p) => p.id === id);
 
+  // Exclude current product and limit to 4 related products
   const relatedProducts = products.filter(p => p.id !== id).slice(0, 4);
 
   if (!product) {
