@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Home, Users, Store, Briefcase, Mail } from 'lucide-react';
 
-const navLinks = [
+export const navLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/about', label: 'Nosotros', icon: Users },
   { href: '/tienda', label: 'Tienda', icon: Store },

@@ -69,11 +69,11 @@ export function CartSheet() {
             </Button>
           )}
         </SheetHeader>
-        <Separator />
+        
         {cartCount > 0 ? (
           <>
-            <div className="flex-1 overflow-y-auto">
-              <div className="flex flex-col gap-4 p-6">
+            <div className="flex-1 overflow-y-auto px-6">
+              <div className="flex flex-col gap-4 py-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex items-center gap-4">
                     <div className="relative h-20 w-20 overflow-hidden rounded-md">
@@ -116,14 +116,15 @@ export function CartSheet() {
               </div>
             </div>
             
-            <SheetFooter className="p-6 pt-0 flex flex-col gap-4 bg-background">
-                <Separator className="mb-4" />
+            <SheetFooter className="p-6 flex flex-col gap-4 bg-background border-t">
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{formatPrice(cartTotal)}</span>
                 </div>
 
-                <div className="text-center text-sm text-muted-foreground">
+                <Separator />
+
+                <div className="text-center text-sm text-muted-foreground p-3 rounded-md bg-secondary">
                     {amountForFreeShipping > 0 ? (
                     <p>
                         Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
@@ -146,7 +147,7 @@ export function CartSheet() {
             </SheetFooter>
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center px-6">
             <ShoppingCart className="h-16 w-16 text-muted-foreground" />
             <h3 className="font-semibold text-lg">Tu carrito está vacío</h3>
             <p className="text-muted-foreground">Agrega productos para comenzar a comprar.</p>

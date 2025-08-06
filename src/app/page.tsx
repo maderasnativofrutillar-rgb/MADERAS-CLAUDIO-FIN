@@ -59,7 +59,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="mt-12 relative">
+          <div className="mt-12">
             <CarouselWithProgress products={featuredProducts} />
           </div>
         </div>
