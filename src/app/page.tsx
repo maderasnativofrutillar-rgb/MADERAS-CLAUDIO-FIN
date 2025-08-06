@@ -26,7 +26,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
             <p className="font-light tracking-widest uppercase text-sm md:text-base">El estilo del sur directo a tu hogar</p>
             <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none uppercase">
-              ¿Tienes una idea?
+              ¿TIENES UNA IDEA?
             </h1>
             <TypewriterEffect
               strings={[
@@ -59,7 +59,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className="mt-12">
+          <div className="mt-12 relative">
             <CarouselWithProgress products={featuredProducts} />
           </div>
         </div>

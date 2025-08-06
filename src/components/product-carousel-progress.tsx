@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
 import { Progress } from '@/components/ui/progress';
@@ -69,6 +70,8 @@ export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
       </Carousel>
       <div className="py-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
         <Progress value={progress} className="w-1/4 mx-auto" />
