@@ -34,7 +34,7 @@ export function MainNav() {
     }, [pathname]);
 
     return (
-        <nav ref={navRef} className="relative bg-muted p-2 rounded-full shadow-inner">
+        <nav ref={navRef} className="relative bg-muted p-2 px-4 rounded-full shadow-inner">
             <div 
                 className="absolute top-2 bottom-2 bg-background rounded-full shadow-md transition-all duration-300 ease-in-out" 
                 style={indicatorStyle}

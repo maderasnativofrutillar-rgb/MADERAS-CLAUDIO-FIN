@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Instagram } from "lucide-react";
 import { TypewriterEffect } from "@/components/typewriter-effect";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { CarouselWithProgress } from "@/components/product-carousel-progress";
 
 export default function Home() {
   const featuredProducts = products.slice(0, 8);
@@ -60,25 +60,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-12">
-             <Carousel 
-                opts={{
-                    align: "start",
-                    loop: true,
-                }}
-                className="w-full"
-             >
-                <CarouselContent>
-                    {featuredProducts.map((product) => (
-                    <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4">
-                        <div className="p-1">
-                            <ProductCard product={product} />
-                        </div>
-                    </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-            </Carousel>
+            <CarouselWithProgress products={featuredProducts} />
           </div>
         </div>
       </section>
