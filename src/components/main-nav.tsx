@@ -34,7 +34,8 @@ export function MainNav() {
                             <span
                                 className={cn(
                                     "absolute inset-x-0 bottom-0 h-0.5 bg-primary transition-all duration-300 ease-out",
-                                    "w-0 group-hover:w-full"
+                                    "w-0 group-hover:w-full",
+                                    { "w-full": pathname === href }
                                 )}
                             />
                         </Link>
