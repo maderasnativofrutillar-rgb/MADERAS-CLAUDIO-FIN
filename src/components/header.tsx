@@ -5,10 +5,12 @@ import { TreePine, User } from "lucide-react";
 import { MainNav } from "./main-nav";
 import { CartSheet } from "./cart-sheet";
 import { Button } from "./ui/button";
+import { AnnouncementBar } from "./announcement-bar";
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
+      <AnnouncementBar />
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
         <MainNav />
         <div className="flex flex-1 items-center justify-end space-x-4">
