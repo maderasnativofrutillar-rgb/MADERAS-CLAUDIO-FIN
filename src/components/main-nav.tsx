@@ -15,35 +15,35 @@ export function MainNav() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <Link href="/" legacyBehavior passHref>
+          <Link href="/" passHref asChild>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Home
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/about" legacyBehavior passHref>
+          <Link href="/about" passHref asChild>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Sobre Nosotros
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-           <Link href="/tienda" legacyBehavior passHref>
+           <Link href="/tienda" passHref asChild>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Tienda
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/empresas" legacyBehavior passHref>
+          <Link href="/empresas" passHref asChild>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Empresas
             </NavigationMenuLink>
           </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <Link href="/contacto" legacyBehavior passHref>
+          <Link href="/contacto" passHref asChild>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Contacto
             </NavigationMenuLink>
