@@ -10,12 +10,12 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/context/cart-context';
 import { ShoppingCart, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 const FREE_SHIPPING_THRESHOLD = 49000;
 
@@ -36,7 +36,7 @@ export function CartSheet() {
   };
   
   const amountForFreeShipping = FREE_SHIPPING_THRESHOLD - cartTotal;
-
+  const freeShippingProgress = Math.min((cartTotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
 
   return (
     <Sheet>
@@ -55,8 +55,8 @@ export function CartSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col p-0 sm:max-w-lg">
-        <SheetHeader className="px-6 pt-6 flex flex-row justify-between items-center">
-          <SheetTitle>Carrito de Compras ({cartCount})</SheetTitle>
+        <SheetHeader className="px-6 pt-6 pb-4 flex flex-row justify-between items-center border-b">
+          <SheetTitle className="font-headline">Carrito ({cartCount})</SheetTitle>
            {cartCount > 0 && (
             <Button
               variant="outline"
@@ -76,7 +76,7 @@ export function CartSheet() {
               <div className="flex flex-col gap-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-4 flex-1">
                       <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border">
                         <Image
                           src={item.image}
@@ -86,7 +86,7 @@ export function CartSheet() {
                           sizes="80px"
                         />
                       </div>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1 flex-1">
                         <h3 className="font-semibold text-sm line-clamp-2">{item.name}</h3>
                         <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
                         <div className="flex items-center gap-2 mt-1">
@@ -95,6 +95,7 @@ export function CartSheet() {
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
                           >
                             -
                           </Button>
@@ -119,27 +120,28 @@ export function CartSheet() {
             </div>
             
             <SheetFooter className="p-6 flex flex-col gap-4 bg-background border-t mt-auto">
-                <div className="text-center text-sm text-muted-foreground">
+               <div className='w-full space-y-2'>
                     {amountForFreeShipping > 0 ? (
-                    <p>
-                        Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
-                    </p>
+                        <p className='text-center text-sm text-muted-foreground'>
+                            Te faltan <span className="font-bold text-primary">{formatPrice(amountForFreeShipping)}</span> para el envío gratis.
+                        </p>
                     ) : (
-                    <p className="font-bold text-green-600">¡Felicidades, tienes envío gratis!</p>
+                        <p className="text-center font-bold text-green-600">¡Felicidades, tienes envío gratis!</p>
                     )}
+                    <Progress value={freeShippingProgress} className="h-2" />
                 </div>
-
-                <Separator />
                 
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>{formatPrice(cartTotal)}</span>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                    <Button asChild size="lg" className="w-full">
-                        <Link href="/checkout">Proceder al Pago</Link>
-                    </Button>
+                <div className="grid gap-2">
+                    <SheetTrigger asChild>
+                        <Button asChild size="lg" className="w-full">
+                            <Link href="/checkout">Proceder al Pago</Link>
+                        </Button>
+                    </SheetTrigger>
                     <SheetTrigger asChild>
                         <Button asChild size="lg" variant="outline" className="w-full">
                             <Link href="/tienda">Seguir Comprando</Link>
