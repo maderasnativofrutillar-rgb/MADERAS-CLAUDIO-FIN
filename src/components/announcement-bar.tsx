@@ -4,30 +4,30 @@ export function AnnouncementBar() {
       <div className="marquee-container overflow-hidden whitespace-nowrap">
         <div className="marquee inline-block">
           <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
           <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
           <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
           <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
         </div>
         <div className="marquee inline-block">
           <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
           <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
            <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
            <span className="inline-block py-2 px-8">
-            SOBRE $45.000 EL ENVÍO ES GRATIS
+            SOBRE $49.000 EL ENVÍO ES <strong className="font-bold text-yellow-300">GRATIS</strong>
           </span>
         </div>
       </div>
