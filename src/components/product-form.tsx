@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -19,10 +20,12 @@ import Image from 'next/image';
 
 const MAX_IMAGES = 5;
 
+// Schema for form validation
 const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
+    // Files are optional on the schema, we'll validate them manually in onSubmit
     images: z.array(z.instanceof(File)).optional(),
 });
 
@@ -33,32 +36,29 @@ interface ProductFormProps {
     onSuccess: () => void;
 }
 
-const getImagePathFromUrl = (url: string): string | null => {
-    try {
-        const decodedUrl = decodeURIComponent(url);
-        const match = decodedUrl.match(/\/o\/(products%2F|products\/)([^?]+)/);
-        if (match && match[2]) {
-            return `products/${match[2]}`;
-        }
-        return null;
-    } catch (e) {
-        console.error("Error al extraer la ruta de la imagen desde la URL", url, e);
-        return null;
+// More reliable helper to get the storage path from a Firebase Storage URL
+const getPathFromUrl = (url: string) => {
+  try {
+    const decodedUrl = decodeURIComponent(url);
+    const match = decodedUrl.match(/\/o\/(.+?)(\?|$)/);
+    if (match && match[1]) {
+      return match[1];
     }
+    return null;
+  } catch (e) {
+    return null;
+  }
 };
-
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
+    
+    // Holds both existing URL strings and new blob URL strings for previews
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     
+    // Keep track of existing image URLs that should be deleted on submit
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-
-    useEffect(() => {
-        const existingImages = product ? [product.image, ...(product.images || [])].filter(Boolean) as string[] : [];
-        setImagePreviews(existingImages);
-    }, [product]);
 
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
@@ -70,125 +70,119 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         },
     });
 
-    const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
-        if (rejectedFiles.length > 0) {
-            toast({ title: 'Error de archivo', description: 'Algunos archivos fueron rechazados. Asegúrate que son imágenes.', variant: 'destructive'});
+    // Set initial previews when editing a product
+    useEffect(() => {
+        if (product) {
+            const existingImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
+            setImagePreviews(existingImages);
         }
+    }, [product]);
 
+    const onDrop = useCallback((acceptedFiles: File[]) => {
         const currentFiles = form.getValues('images') || [];
-        const existingPreviews = imagePreviews.filter(p => !p.startsWith('blob:'));
-        
-        const totalImageCount = existingPreviews.length + currentFiles.length + acceptedFiles.length;
+        const totalImageCount = imagePreviews.length + acceptedFiles.length;
 
         if (totalImageCount > MAX_IMAGES) {
-             toast({ title: 'Límite de imágenes alcanzado', description: `No puedes tener más de ${MAX_IMAGES} imágenes.`, variant: 'destructive'});
-             return;
+            toast({ title: 'Límite de imágenes alcanzado', description: `No puedes subir más de ${MAX_IMAGES} imágenes en total.`, variant: 'destructive'});
+            return;
         }
 
-        const newFiles = [...currentFiles, ...acceptedFiles];
-        form.setValue('images', newFiles, { shouldValidate: true });
+        form.setValue('images', [...currentFiles, ...acceptedFiles], { shouldValidate: true });
 
         const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
 
-    }, [form, toast, imagePreviews]);
+    }, [form, toast, imagePreviews.length]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: { 'image/*': [] },
+        accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
     });
     
     const removeImage = (index: number) => {
         const imageToRemove = imagePreviews[index];
+
+        // If it's an existing image (http URL), add it to the deletion queue
         if (imageToRemove.startsWith('http')) {
-            // It's an existing image, mark it for deletion
             setImagesToDelete(prev => [...prev, imageToRemove]);
         }
-        
-        // Find the corresponding File object if it's a new upload
-        const blobUrlIndex = imagePreviews.slice(0, index).filter(p => p.startsWith('blob:')).length;
-        const currentFiles = form.getValues('images') || [];
-        
-        if (imageToRemove.startsWith('blob:') && currentFiles[blobUrlIndex]) {
+
+        // If it's a new image (blob URL), remove it from the form's file list
+        if (imageToRemove.startsWith('blob:')) {
+            const blobUrlIndex = imagePreviews.filter(p => p.startsWith('blob:')).indexOf(imageToRemove);
+            const currentFiles = form.getValues('images') || [];
             const updatedFiles = currentFiles.filter((_, i) => i !== blobUrlIndex);
-            form.setValue('images', updatedFiles, { shouldValidate: true });
+            form.setValue('images', updatedFiles);
         }
-        
-        // Remove from previews
+
+        // Remove from the preview list
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true);
 
-        const newFiles = data.images || [];
+        const newFiles: File[] = data.images || [];
         const existingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
 
-        if (!product && newFiles.length === 0) {
-            toast({ title: 'Error de validación', description: 'Debes subir al menos una imagen para crear un producto.', variant: 'destructive' });
-            setLoading(false);
-            return;
-        }
-        if (product && existingImageUrls.length === 0 && newFiles.length === 0) {
-            toast({ title: 'Error de validación', description: 'Un producto debe tener al menos una imagen.', variant: 'destructive' });
+        if (existingImageUrls.length + newFiles.length === 0) {
+            toast({ title: 'Error', description: 'Debes tener al menos una imagen.', variant: 'destructive' });
             setLoading(false);
             return;
         }
 
         try {
-            // Step 1: Delete images that were marked for removal
+            // 1. Delete images marked for removal
             for (const url of imagesToDelete) {
-                const imagePath = getImagePathFromUrl(url);
-                if (imagePath) {
-                    try {
-                        const storageRef = ref(storage, imagePath);
-                        await deleteObject(storageRef);
-                    } catch (error) {
-                        console.error(`No se pudo eliminar la imagen ${imagePath}:`, error);
-                    }
+                const path = getPathFromUrl(url);
+                if (path) {
+                    await deleteObject(ref(storage, path));
                 }
             }
 
-            // Step 2: Upload new images and get their URLs
+            // 2. Upload new files and get their URLs
             const newImageUrls = await Promise.all(
                 newFiles.map(async (file) => {
                     const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                    const arrayBuffer = await file.arrayBuffer();
-                    await uploadBytes(storageRef, new Uint8Array(arrayBuffer));
+                    const fileBuffer = await file.arrayBuffer();
+                    await uploadBytes(storageRef, fileBuffer);
                     return getDownloadURL(storageRef);
                 })
             );
 
-            // Step 3: Combine old and new image URLs
+            // 3. Combine remaining old URLs with new URLs
             const finalImageUrls = [...existingImageUrls, ...newImageUrls];
 
-            // Step 4: Prepare product data
+            if (finalImageUrls.length === 0) {
+              toast({ title: 'Error', description: 'El producto debe tener al menos una imagen.', variant: 'destructive'});
+              setLoading(false);
+              return;
+            }
+
+            // 4. Prepare data for Firestore
             const productData = {
                 name: data.name,
                 description: data.description,
                 price: data.price,
-                image: finalImageUrls[0],
-                images: finalImageUrls.slice(1),
+                image: finalImageUrls[0], // First image is the main one
+                images: finalImageUrls.slice(1), // The rest are gallery images
             };
-            
-            // Step 5: Create or update Firestore document
+
+            // 5. Create or Update Firestore document
             if (product) {
-                const productRef = doc(db, 'products', product.id);
-                await updateDoc(productRef, productData);
+                await updateDoc(doc(db, 'products', product.id), productData);
                 toast({ title: 'Éxito', description: 'Producto actualizado correctamente.' });
             } else {
-                await addDoc(collection(db, "products"), {
-                    ...productData,
-                    createdAt: serverTimestamp(),
-                });
+                await addDoc(collection(db, 'products'), { ...productData, createdAt: serverTimestamp() });
                 toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
             }
             
             onSuccess();
 
         } catch (error) {
-            console.error("Error al guardar el producto: ", error);
-            toast({ title: 'Error', description: `No se pudo guardar el producto. ${error instanceof Error ? error.message : ''}`, variant: 'destructive' });
+            console.error("Error saving product: ", error);
+            const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
+            toast({ title: 'Error al Guardar', description: errorMessage, variant: 'destructive' });
         } finally {
             setLoading(false);
         }
@@ -208,38 +202,29 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 <FormField control={form.control} name="description" render={({field}) => (
                     <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
                 )}/>
-                <FormField control={form.control} name="images" render={() => (
-                    <FormItem>
-                        <FormLabel>Imágenes (hasta {MAX_IMAGES})</FormLabel>
-                        <FormControl>
-                            <div
-                                {...getRootProps()}
-                                className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border'}`}
-                            >
-                                <input {...getInputProps()} />
-                                <div className="text-center">
-                                    <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
-                                    {isDragActive ? (
-                                        <p className="mt-2 font-semibold text-primary">Suelta las imágenes aquí...</p>
-                                    ) : (
-                                        <>
-                                            <p className="mt-2 text-sm font-semibold">Arrastra y suelta imágenes aquí, o haz clic para seleccionar</p>
-                                            <p className="text-xs text-muted-foreground">Máximo 5 imágenes. La primera será la principal.</p>
-                                        </>
-                                    )}
-                                </div>
+                <FormItem>
+                    <FormLabel>Imágenes (hasta {MAX_IMAGES})</FormLabel>
+                    <FormControl>
+                        <div
+                            {...getRootProps()}
+                            className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border'}`}
+                        >
+                            <input {...getInputProps()} />
+                            <div className="text-center">
+                                <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
+                                <p className="mt-2 text-sm font-semibold">Arrastra y suelta imágenes o haz clic para seleccionar</p>
+                                <p className="text-xs text-muted-foreground">La primera imagen será la principal. Máx {MAX_IMAGES}.</p>
                             </div>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
+                        </div>
+                    </FormControl>
+                </FormItem>
 
                 {imagePreviews.length > 0 && (
                      <div>
-                        <p className="text-sm font-medium mb-2">Imágenes seleccionadas: ({imagePreviews.length} de {MAX_IMAGES})</p>
+                        <p className="text-sm font-medium mb-2">Imágenes actuales: ({imagePreviews.length} de {MAX_IMAGES})</p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                             {imagePreviews.map((src, index) => (
-                                <div key={index} className="relative group aspect-square">
+                                <div key={src} className="relative group aspect-square">
                                     <Image src={src} alt={`Preview ${index}`} fill className="object-cover rounded-md" unoptimized/>
                                     <Button
                                         type="button"
@@ -261,7 +246,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 
                 <Button type="submit" disabled={loading} className="w-full">
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {loading ? 'Guardando...' : (product ? 'Actualizar Producto' : 'Guardar Producto')}
+                    {loading ? 'Guardando...' : (product ? 'Actualizar Producto' : 'Crear Producto')}
                 </Button>
             </form>
         </Form>

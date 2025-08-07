@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Package, Loader2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Package } from 'lucide-react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -17,21 +17,20 @@ import { useToast } from '@/hooks/use-toast';
 import { ProductForm } from '@/components/product-form';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Helper to get image name from URL
-const getImageNameFromUrl = (url: string) => {
+// Helper to get image path from URL for deletion
+const getImagePathFromUrl = (url: string): string | null => {
     try {
         const urlObj = new URL(url);
-        // The file name is in the path, after 'products%2F'. We need to decode it.
-        const pathSegments = urlObj.pathname.split('/');
-        const encodedFileName = pathSegments.pop()?.split('?')[0] ?? '';
-        if (encodedFileName.includes('products%2F')) {
-             return decodeURIComponent(encodedFileName.split('products%2F')[1]);
+        const pathName = urlObj.pathname;
+        // The path in the URL is something like /v0/b/your-bucket.appspot.com/o/products%2Fimage.jpg
+        const match = pathName.match(/\/o\/(.+?)(\?|$)/);
+        if (match && match[1]) {
+            return decodeURIComponent(match[1]);
         }
-        // Fallback for different URL structures if needed, though the above should be robust.
-        return decodeURIComponent(encodedFileName);
+        return null;
     } catch (e) {
-        console.error("Could not parse URL to get image name", url, e);
-        return '';
+        console.error("Could not parse URL to get image path", url, e);
+        return null;
     }
 };
 
@@ -53,7 +52,6 @@ export default function DashboardPage() {
           return { 
             id: doc.id, 
             ...data,
-            // Convert timestamp to string if it exists
             createdAt: data.createdAt?.toDate().toISOString(),
           } as Product;
         });
@@ -78,30 +76,23 @@ export default function DashboardPage() {
     if (!confirm(`¿Estás seguro de que quieres eliminar "${product.name}"?`)) return;
 
     try {
-        // Store image URLs before deleting the document
         const imagesToDelete = [product.image, ...(product.images || [])].filter(Boolean) as string[];
 
-        // Delete the document from Firestore first
         await deleteDoc(doc(db, "products", product.id));
 
-        // Now, delete the images from Storage
         for (const imageUrl of imagesToDelete) {
-            try {
-                if (imageUrl && imageUrl.includes('firebasestorage')) {
-                    const imageName = getImageNameFromUrl(imageUrl);
-                    if (imageName) {
-                        const imageRef = ref(storage, `products/${imageName}`);
-                        await deleteObject(imageRef);
-                    }
+            const imagePath = getImagePathFromUrl(imageUrl);
+            if (imagePath) {
+                try {
+                    await deleteObject(ref(storage, imagePath));
+                } catch (storageError) {
+                    console.error(`Failed to delete image ${imagePath}:`, storageError);
                 }
-            } catch (storageError) {
-                 // Log if a specific image fails, but don't block other deletions
-                console.error(`Error deleting image ${imageUrl}: `, storageError);
             }
         }
 
         toast({ title: 'Éxito', description: 'Producto eliminado correctamente.' });
-        await fetchProducts(); // Refresh the list
+        await fetchProducts();
     } catch (error) {
         console.error("Error deleting product: ", error);
         toast({ title: 'Error', description: 'No se pudo eliminar el producto.', variant: 'destructive' });
