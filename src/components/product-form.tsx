@@ -38,11 +38,14 @@ interface ProductFormProps {
 const getImageNameFromUrl = (url: string) => {
     try {
         const urlObj = new URL(url);
+        // The file name is in the path, after 'products%2F'. We need to decode it.
         const pathSegments = urlObj.pathname.split('/');
-        const encodedFileName = pathSegments[pathSegments.length - 1];
-        // The file name is usually in the format 'products%2F<actual_name>'
-        const decodedName = decodeURIComponent(encodedFileName).split('/').pop();
-        return decodedName || '';
+        const encodedFileName = pathSegments.pop()?.split('?')[0] ?? '';
+        if (encodedFileName.includes('products%2F')) {
+             return decodeURIComponent(encodedFileName.split('products%2F')[1]);
+        }
+        // Fallback for different URL structures if needed, though the above should be robust.
+        return decodeURIComponent(encodedFileName);
     } catch (e) {
         console.error("Could not parse URL to get image name", url, e);
         return '';
