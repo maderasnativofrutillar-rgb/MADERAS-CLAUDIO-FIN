@@ -26,16 +26,16 @@ const siteImagesSchema = z.object({
 
 type SiteImagesFormValues = z.infer<typeof siteImagesSchema>;
 
-const ImageUploadField = ({ name, label, control, currentImageUrl }: { name: keyof SiteImagesFormValues, label: string, control: any, currentImageUrl: string | null }) => {
+const ImageUploadField = ({ name, label, setValue, currentImageUrl }: { name: keyof SiteImagesFormValues, label: string, setValue: Function, currentImageUrl: string | null }) => {
     const [preview, setPreview] = useState<string | null>(currentImageUrl);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         if (acceptedFiles.length > 0) {
             const file = acceptedFiles[0];
-            control.setValue(name, file, { shouldValidate: true });
+            setValue(name, file, { shouldValidate: true });
             setPreview(URL.createObjectURL(file));
         }
-    }, [control, name]);
+    }, [setValue, name]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -75,6 +75,8 @@ export function SiteImagesTab() {
   const form = useForm<SiteImagesFormValues>({
     resolver: zodResolver(siteImagesSchema),
   });
+
+  const { setValue, control } = form;
 
   const fetchSiteImages = useCallback(async () => {
     setLoading(true);
@@ -160,13 +162,13 @@ export function SiteImagesTab() {
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <ImageUploadField name="hero" label="Imagen Hero (Página de Inicio)" control={form.control} currentImageUrl={initialData?.hero || null} />
-            <ImageUploadField name="essence" label="Imagen 'Nuestra Esencia' (Página de Inicio)" control={form.control} currentImageUrl={initialData?.essence || null} />
-            <ImageUploadField name="about" label="Imagen 'Nosotros'" control={form.control} currentImageUrl={initialData?.about || null} />
+            <ImageUploadField name="hero" label="Imagen Hero (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.hero || null} />
+            <ImageUploadField name="essence" label="Imagen 'Nuestra Esencia' (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.essence || null} />
+            <ImageUploadField name="about" label="Imagen 'Nosotros'" setValue={setValue} currentImageUrl={initialData?.about || null} />
             
             {/* Portfolio Management */}
             <FormField
-                control={form.control}
+                control={control}
                 name="portfolio"
                 render={({ field }) => {
                     const previews = field.value?.map(val => typeof val === 'string' ? val : URL.createObjectURL(val)) || [];
