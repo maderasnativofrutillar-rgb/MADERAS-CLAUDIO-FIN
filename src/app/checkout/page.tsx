@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -37,6 +38,8 @@ const regions = {
 const checkoutSchema = z.object({
   name: z.string().min(2, 'El nombre es requerido'),
   email: z.string().email('Email inválido'),
+  rut: z.string().min(9, 'El RUT es requerido y debe ser válido'),
+  phone: z.string().min(9, 'El celular es requerido'),
   address: z.string().min(5, 'La dirección es requerida'),
   city: z.string().min(2, 'La ciudad es requerida'),
   country: z.string().min(2, 'El país es requerido'),
@@ -69,6 +72,8 @@ export default function CheckoutPage() {
     defaultValues: {
       name: '',
       email: '',
+      rut: '',
+      phone: '',
       address: '',
       city: '',
       country: 'Chile',
@@ -151,8 +156,16 @@ export default function CheckoutPage() {
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem><FormLabel>Nombre Completo</FormLabel><FormControl><Input placeholder="Juan Pérez" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
-                <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                 <div className="grid sm:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                  )}/>
+                  <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem><FormLabel>Celular</FormLabel><FormControl><Input type="tel" placeholder="+56 9 1234 5678" {...field} /></FormControl><FormMessage /></FormItem>
+                  )}/>
+                </div>
+                 <FormField control={form.control} name="rut" render={({ field }) => (
+                  <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="address" render={({ field }) => (
                   <FormItem><FormLabel>Dirección</FormLabel><FormControl><Input placeholder="Av. Siempre Viva 123" {...field} /></FormControl><FormMessage /></FormItem>
