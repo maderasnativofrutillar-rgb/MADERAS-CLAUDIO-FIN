@@ -83,7 +83,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
                 <nav className="grid gap-6 text-lg font-medium mt-6">
                     <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
                       {logo ? (
-                        <div className="relative h-12 w-12">
+                        <div className="relative h-10 w-10">
                           <Image src={logo} alt="Logo de la empresa" fill className="object-contain" />
                         </div>
                       ) : (
@@ -112,12 +112,12 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         </div>
         <div className="flex items-center justify-end space-x-2 ml-auto">
            <div className="hidden lg:flex flex-col items-start space-y-1 border-r pr-4 mr-2">
-              <a href="mailto:morenosasesorias@gmail.com" className="flex items-center gap-2 text-sm group">
-                  <Mail className="h-5 w-5 text-primary" />
+              <a href="mailto:morenosasesorias@gmail.com" className="flex items-center gap-2 text-xs group">
+                  <Mail className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground group-hover:text-primary transition-colors">morenosasesorias@gmail.com</span>
               </a>
-              <a href="https://wa.me/56912345678" target="_blank" className="flex items-center gap-2 text-sm group">
-                  <Phone className="h-5 w-5 text-primary" />
+              <a href="https://wa.me/56912345678" target="_blank" className="flex items-center gap-2 text-xs group">
+                  <Phone className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground group-hover:text-primary transition-colors">+56 9 1234 5678</span>
               </a>
           </div>
