@@ -1,8 +1,9 @@
+
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
-import { Product } from "@/lib/types";
+import { collection, getDocs, limit, orderBy, query, doc, getDoc } from "firebase/firestore";
+import { Product, SiteImages } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram } from "lucide-react";
@@ -24,14 +25,33 @@ async function getFeaturedProducts(): Promise<Product[]> {
   });
 }
 
+async function getSiteImages(): Promise<SiteImages> {
+    const docRef = doc(db, "siteConfig", "images");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return docSnap.data() as SiteImages;
+    } else {
+        // Return default placeholders if document doesn't exist
+        return {
+            hero: "https://placehold.co/1920x1080.png",
+            essence: "https://placehold.co/600x400.png",
+            about: "https://placehold.co/800x1000.png",
+            portfolio: Array(5).fill("https://placehold.co/600x400.png"),
+        };
+    }
+}
+
+
 export default async function Home() {
   const featuredProducts = await getFeaturedProducts();
+  const siteImages = await getSiteImages();
 
   return (
     <main className="flex-1">
       <section className="relative w-full h-screen text-white">
         <Image
-          src="https://placehold.co/1920x1080.png"
+          src={siteImages.hero}
           alt="Taller de Madera Nativo Sur"
           fill
           className="object-cover"
@@ -96,7 +116,7 @@ export default async function Home() {
               </Button>
             </div>
             <Image
-              src="https://placehold.co/600x400.png"
+              src={siteImages.essence}
               alt="Maderas nobles"
               width={600}
               height={400}

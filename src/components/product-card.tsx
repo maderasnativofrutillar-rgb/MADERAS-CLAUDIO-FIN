@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from './ui/badge';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -19,19 +19,19 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const { addToCart } = useCart();
-  const [currentImage, setCurrentImage] = useState(product.image);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
+  
   const allImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
+  const [currentImage, setCurrentImage] = useState(product.image);
+  const imageIndexRef = useRef(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const startImageRotation = () => {
     if (allImages.length <= 1) return;
     
-    let currentIndex = 0;
     intervalRef.current = setInterval(() => {
-      currentIndex = (currentIndex + 1) % allImages.length;
-      setCurrentImage(allImages[currentIndex]);
-    }, 800); // Cambia de imagen cada 800ms
+      imageIndexRef.current = (imageIndexRef.current + 1) % allImages.length;
+      setCurrentImage(allImages[imageIndexRef.current]);
+    }, 800);
   };
 
   const stopImageRotation = () => {
@@ -39,7 +39,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    setCurrentImage(product.image); // Vuelve a la imagen principal
+    imageIndexRef.current = 0;
+    setCurrentImage(allImages[0]);
   };
 
   const formatPrice = (price: number) => {
@@ -70,14 +71,20 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             </Badge>
                         )}
                     </div>
-                    <Image
-                        src={currentImage}
-                        alt={product.name}
-                        fill
-                        className="object-contain transition-all duration-300"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        data-ai-hint={product.dataAiHint}
-                    />
+                    {allImages.map((img, index) => (
+                         <Image
+                            key={img + index}
+                            src={img}
+                            alt={product.name}
+                            fill
+                            className={cn(
+                                "object-contain transition-opacity duration-300 ease-in-out",
+                                currentImage === img ? "opacity-100" : "opacity-0"
+                            )}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            data-ai-hint={product.dataAiHint}
+                        />
+                    ))}
                 </div>
             </CardHeader>
             <CardContent className="flex-grow">

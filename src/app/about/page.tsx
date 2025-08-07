@@ -1,7 +1,29 @@
+
 import Image from "next/image";
 import { HighlightedText } from "@/components/highlighted-text";
+import { getDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { SiteImages } from "@/lib/types";
 
-export default function AboutPage() {
+
+async function getSiteImages(): Promise<SiteImages> {
+    const docRef = doc(db, "siteConfig", "images");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return docSnap.data() as SiteImages;
+    } else {
+        return {
+            hero: "https://placehold.co/1920x1080.png",
+            essence: "https://placehold.co/600x400.png",
+            about: "https://placehold.co/800x1000.png",
+            portfolio: Array(5).fill("https://placehold.co/600x400.png"),
+        };
+    }
+}
+
+export default async function AboutPage() {
+  const siteImages = await getSiteImages();
   return (
     <div className="container mx-auto px-4 py-12 md:py-24">
       <div className="grid gap-12 md:grid-cols-2 md:gap-16">
@@ -26,7 +48,7 @@ export default function AboutPage() {
         </div>
         <div className="relative min-h-[300px] md:min-h-full animate-fade-in" style={{ animationDelay: '0.5s' }}>
             <Image
-                src="https://placehold.co/800x1000.png"
+                src={siteImages.about}
                 alt="Artesano trabajando madera"
                 fill
                 className="rounded-lg object-cover shadow-lg"

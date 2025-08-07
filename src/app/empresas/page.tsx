@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Box, Briefcase } from "lucide-react";
@@ -10,8 +11,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { SiteImages } from "@/lib/types";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-const portfolioImages = [
+const defaultPortfolioImages = [
   { src: "https://placehold.co/600x400.png", alt: "Logo de empresa grabado en tabla", dataAiHint: "engraved logo board" },
   { src: "https://placehold.co/600x400.png", alt: "Set de regalos corporativos en madera", dataAiHint: "corporate gift set" },
   { src: "https://placehold.co/600x400.png", alt: "Tabla de picoteo personalizada", dataAiHint: "custom cheese board" },
@@ -19,8 +23,32 @@ const portfolioImages = [
   { src: "https://placehold.co/600x400.png", alt: "Cajas de madera con marca de empresa", dataAiHint: "branded wooden boxes" },
 ];
 
+async function getSiteImages(): Promise<SiteImages> {
+    const docRef = doc(db, "siteConfig", "images");
+    const docSnap = await getDoc(docRef);
 
-export default function EmpresasPage() {
+    if (docSnap.exists() && docSnap.data().portfolio?.length) {
+        return docSnap.data() as SiteImages;
+    } else {
+        return {
+            hero: "https://placehold.co/1920x1080.png",
+            essence: "https://placehold.co/600x400.png",
+            about: "https://placehold.co/800x1000.png",
+            portfolio: defaultPortfolioImages.map(p => p.src),
+        };
+    }
+}
+
+
+export default async function EmpresasPage() {
+  const siteImages = await getSiteImages();
+
+  const portfolioImages = siteImages.portfolio.map((src, index) => ({
+    src: src,
+    alt: defaultPortfolioImages[index]?.alt || "Imagen de portafolio",
+    dataAiHint: defaultPortfolioImages[index]?.dataAiHint || "corporate gift"
+  }));
+
   return (
     <>
       <section className="relative w-full py-20 md:py-32 bg-primary/5 text-center">

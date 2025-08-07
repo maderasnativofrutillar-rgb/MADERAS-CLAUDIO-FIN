@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProductCard } from '@/components/product-card';
 import { Input } from '@/components/ui/input';
@@ -9,11 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Product } from '@/lib/types';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { categories } from '@/lib/constants';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
+const PRODUCTS_PER_PAGE = 20;
 
 function slugify(text: string) {
     if (typeof text !== 'string') return '';
@@ -21,7 +25,9 @@ function slugify(text: string) {
 }
 
 async function getProducts(): Promise<Product[]> {
-  const querySnapshot = await getDocs(collection(db, "products"));
+  const productsCollection = collection(db, "products");
+  const q = query(productsCollection, orderBy("createdAt", "desc"));
+  const querySnapshot = await getDocs(q);
   const products = querySnapshot.docs.map(doc => {
       const data = doc.data();
       return { 
@@ -36,12 +42,14 @@ async function getProducts(): Promise<Product[]> {
 export default function TiendaPage() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('categoria');
+  const initialPage = parseInt(searchParams.get('page') || '1', 10);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategory ? [initialCategory] : []);
-  const [sortOrder, setSortOrder] = useState('default');
+  const [sortOrder, setSortOrder] = useState('date-desc');
+  const [currentPage, setCurrentPage] = useState(initialPage);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -59,30 +67,69 @@ export default function TiendaPage() {
         ? prev.filter(c => c !== categorySlug)
         : [...prev, categorySlug]
     );
+    setCurrentPage(1); 
+  };
+  
+  const filteredAndSortedProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const productCategories = product.categories?.map(cat => slugify(cat)) || [];
+      const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => productCategories.includes(cat));
+
+      return matchesSearch && matchesCategory;
+    }).sort((a: Product, b: Product) => {
+      switch (sortOrder) {
+        case 'price-asc':
+          return a.price - b.price;
+        case 'price-desc':
+          return b.price - a.price;
+        case 'date-asc':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'date-desc':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+  }, [products, searchTerm, selectedCategories, sortOrder]);
+
+
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = filteredAndSortedProducts.slice(
+      (currentPage - 1) * PRODUCTS_PER_PAGE,
+      currentPage * PRODUCTS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+      if (page >= 1 && page <= totalPages) {
+          setCurrentPage(page);
+          window.scrollTo(0, 0);
+      }
   };
 
-  const filteredAndSortedProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const productCategories = product.categories?.map(cat => slugify(cat)) || [];
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => productCategories.includes(cat));
-
-    return matchesSearch && matchesCategory;
-  }).sort((a: Product, b: Product) => {
-    switch (sortOrder) {
-      case 'price-asc':
-        return a.price - b.price;
-      case 'price-desc':
-        return b.price - a.price;
-      case 'date-asc':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case 'date-desc':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      default:
-        // Default to newest first
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    return (
+        <Pagination>
+            <PaginationContent>
+                <PaginationItem>
+                    <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }} />
+                </PaginationItem>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                    <PaginationItem key={i}>
+                        <PaginationLink href="#" isActive={currentPage === i + 1} onClick={(e) => { e.preventDefault(); handlePageChange(i + 1); }}>
+                            {i + 1}
+                        </PaginationLink>
+                    </PaginationItem>
+                ))}
+                <PaginationItem>
+                    <PaginationNext href="#" onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }} />
+                </PaginationItem>
+            </PaginationContent>
+        </Pagination>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -104,7 +151,7 @@ export default function TiendaPage() {
                 type="text"
                 placeholder="Buscar productos..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 className="pl-10"
               />
             </div>
@@ -132,20 +179,25 @@ export default function TiendaPage() {
         <main className="md:col-span-3">
           <div className="flex justify-between items-center mb-6">
             <p className="text-sm text-muted-foreground">
-              Mostrando {filteredAndSortedProducts.length} de {products.length} productos
+              Mostrando {paginatedProducts.length} de {filteredAndSortedProducts.length} productos
             </p>
-            <Select value={sortOrder} onValueChange={setSortOrder}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Más nuevos</SelectItem>
-                <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
-                <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
-                 <SelectItem value="date-asc">Más antiguos</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+                <Label htmlFor="sort-order" className="text-sm font-medium">Ordenar por:</Label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <SelectTrigger id="sort-order" className="w-[200px]">
+                        <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="date-desc">Más nuevos</SelectItem>
+                        <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
+                        <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
+                        <SelectItem value="date-asc">Más antiguos</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
           </div>
+          
+          <div className="mb-8">{renderPagination()}</div>
           
           {loading ? (
              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,9 +218,9 @@ export default function TiendaPage() {
                     </Card>
                 ))}
              </div>
-          ) : filteredAndSortedProducts.length > 0 ? (
+          ) : paginatedProducts.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAndSortedProducts.map(product => (
+              {paginatedProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -177,6 +229,8 @@ export default function TiendaPage() {
               <p className="text-lg text-muted-foreground">No se encontraron productos que coincidan con tu búsqueda.</p>
             </div>
           )}
+
+          <div className="mt-8">{renderPagination()}</div>
         </main>
       </div>
     </div>
