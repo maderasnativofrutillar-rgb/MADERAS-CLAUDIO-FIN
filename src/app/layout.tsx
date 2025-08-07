@@ -42,7 +42,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {siteImages.favicon && <link rel="icon" href={siteImages.favicon} sizes="any" />}
+        {siteImages.favicon ? <link rel="icon" href={siteImages.favicon} sizes="any" /> : null}
       </head>
       <body
         className={cn(
