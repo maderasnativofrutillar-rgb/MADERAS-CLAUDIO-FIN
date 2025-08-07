@@ -65,6 +65,102 @@ export const products: Product[] = [
         image: "https://placehold.co/600x600.png",
         dataAiHint: "wooden rolling pin"
     },
+    {
+        id: "9",
+        name: "Plato para Picar de Roble",
+        description: "Plato de roble con divisiones, perfecto para servir quesos, frutas y frutos secos.",
+        price: 27990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "serving platter wood"
+    },
+    {
+        id: "10",
+        name: "Servilletero de Madera Nativa",
+        description: "Moderno servilletero de diseño minimalista, fabricado con una mezcla de maderas nativas.",
+        price: 9990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "wood napkin holder"
+    },
+    {
+        id: "11",
+        name: "Tabla de Pan con Cuchillo",
+        description: "Tabla alargada de Lenga para cortar y servir pan, incluye cuchillo con mango de madera.",
+        price: 26990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "bread board knife"
+    },
+    {
+        id: "12",
+        name: "Set de Utensilios de Cocina",
+        description: "Set de 5 utensilios de cocina de madera de Raulí, incluye espátula, cuchara y tenedor.",
+        price: 23990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "kitchen utensil set"
+    },
+    {
+        id: "13",
+        name: "Cuenco Individual de Tepa",
+        description: "Pequeño cuenco de madera de Tepa, ideal para snacks, salsas o como pieza decorativa.",
+        price: 8990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "small wooden bowl"
+    },
+    {
+        id: "14",
+        name: "Tabla de Presentación Rústica",
+        description: "Tabla con borde natural de corteza, perfecta para una presentación rústica de quesos y embutidos.",
+        price: 31990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "rustic wood slab"
+    },
+    {
+        id: "15",
+        name: "Soporte para Copas de Vino",
+        description: "Elegante soporte de madera para colgar copas de vino. Un regalo perfecto para los amantes del vino.",
+        price: 17990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "wine glass holder"
+    },
+    {
+        id: "16",
+        name: "Caja de Recuerdos Personalizada",
+        description: "Caja de madera grabada para guardar tus recuerdos más preciados. Grabado láser personalizable.",
+        price: 39990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "keepsake box wood"
+    },
+    {
+        id: "17",
+        name: "Espejo con Marco de Alerce",
+        description: "Espejo de pared con un marco robusto y elegante de madera de Alerce envejecida.",
+        price: 45990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "wood mirror frame"
+    },
+    {
+        id: "18",
+        name: "Porta-llaves de Pared",
+        description: "Práctico y decorativo porta-llaves de pared, hecho con madera reciclada de Lenga.",
+        price: 11990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "key holder wall"
+    },
+    {
+        id: "19",
+        name: "Reloj de Pared de Rodaja",
+        description: "Reloj de pared hecho a partir de una gran rodaja de Ciprés, con números grabados.",
+        price: 38990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "wood slice clock"
+    },
+    {
+        id: "20",
+        name: "Set de Regalo Corporativo",
+        description: "Incluye una tabla de picoteo, posavasos y un llavero, todo personalizable con el logo de tu empresa.",
+        price: 49990,
+        image: "https://placehold.co/600x600.png",
+        dataAiHint: "corporate gift wood"
+    }
 ];
 
 export const categories = [
