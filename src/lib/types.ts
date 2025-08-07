@@ -1,4 +1,5 @@
 
+
 export interface Product {
     id: string;
     name: string;
@@ -8,8 +9,11 @@ export interface Product {
     images?: string[]; // Gallery images
     categories?: string[];
     dataAiHint?: string;
-    // Allow createdAt to be a string for client-side components
     createdAt?: any;
+    // New fields for wholesale and offers
+    wholesaleEnabled?: boolean;
+    wholesaleMinQuantity?: number;
+    offerPercentage?: number;
   }
   
   export interface CartItem extends Product {

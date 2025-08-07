@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { TreePine, User, Menu } from "lucide-react";
+import { TreePine, User, Menu, LogOut } from "lucide-react";
 import { MainNav } from "./main-nav";
 import { CartSheet } from "./cart-sheet";
 import { AnnouncementBar } from "./announcement-bar";
@@ -9,8 +9,51 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { navLinks } from "./main-nav";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 export function SiteHeader() {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente.",
+      });
+      router.push("/");
+    } catch (error) {
+       toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión.",
+        variant: "destructive"
+      });
+    }
+  };
+
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <AnnouncementBar />
@@ -44,13 +87,42 @@ export function SiteHeader() {
           <MainNav />
         </div>
         <div className="flex items-center justify-end space-x-1 ml-auto">
-          <Link
-            href="/login"
-            className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
-          >
-            <User className="h-5 w-5" />
-            <span className="sr-only">Login</span>
-          </Link>
+          {user ? (
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <User className="h-5 w-5" />
+                 </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">Admin</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                        </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/admin/dashboard')}>
+                    <Menu className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Cerrar sesión</span>
+                  </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              href="/login"
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+            >
+              <User className="h-5 w-5" />
+              <span className="sr-only">Login</span>
+            </Link>
+          )}
           <CartSheet />
         </div>
       </div>

@@ -35,6 +35,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cartItems]);
 
   const addToCart = (product: Product) => {
+     const hasOffer = product.offerPercentage && product.offerPercentage > 0;
+     const finalPrice = hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price;
+
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       if (existingItem) {
@@ -42,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { ...product, quantity: 1, price: finalPrice }];
     });
      toast({
        title: "Producto añadido",

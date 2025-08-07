@@ -6,19 +6,26 @@ import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, ChevronsRight } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
 import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 async function getProduct(id: string): Promise<Product | null> {
     const docRef = doc(db, "products", id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Product;
+        const data = docSnap.data();
+        return { 
+            id: docSnap.id, 
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+        } as Product;
     } else {
         return null;
     }
@@ -26,10 +33,16 @@ async function getProduct(id: string): Promise<Product | null> {
 
 async function getRelatedProducts(currentProductId: string): Promise<Product[]> {
     const productsRef = collection(db, "products");
-    // This query is very basic. For a real app, you might want to query by category or tags.
     const q = query(productsRef, where("id", "!=", currentProductId), limit(4));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    return querySnapshot.docs.map(doc => {
+       const data = doc.data();
+        return { 
+            id: doc.id, 
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+        } as Product;
+    });
 }
 
 
@@ -51,7 +64,7 @@ export default function ProductDetailPage() {
         const productData = await getProduct(id);
         setProduct(productData);
         if (productData) {
-            setSelectedImage(productData.image); // Set initial main image
+            setSelectedImage(productData.image);
             const relatedData = await getRelatedProducts(id);
             setRelatedProducts(relatedData);
         }
@@ -61,12 +74,9 @@ export default function ProductDetailPage() {
     fetchProductData();
   }, [id]);
 
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
   };
-
-  const galleryImages = [product?.image, ...(product?.images || [])].filter(Boolean) as string[];
   
   if (loading) {
       return (
@@ -103,11 +113,20 @@ export default function ProductDetailPage() {
     );
   }
 
+  const galleryImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
+  const hasOffer = product.offerPercentage && product.offerPercentage > 0;
+  const discountedPrice = hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price;
+
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div>
           <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg mb-4">
+             {hasOffer && (
+                <Badge className='absolute top-3 left-3 z-10 bg-orange-500 text-white shadow-lg text-sm py-1 px-3'>
+                    OFERTA {product.offerPercentage}%
+                </Badge>
+            )}
             <Image
               src={selectedImage || product.image}
               alt={product.name}
@@ -138,9 +157,26 @@ export default function ProductDetailPage() {
         <div className="flex flex-col justify-center space-y-6">
           <h1 className="font-headline text-3xl md:text-4xl font-bold">{product.name}</h1>
           <p className="text-muted-foreground text-lg whitespace-pre-wrap">{product.description}</p>
-          <p className="text-3xl font-bold text-primary">{formatPrice(product.price)}</p>
+          
+          <div className="flex items-baseline gap-4">
+            <p className={`text-3xl font-bold ${hasOffer ? 'text-green-600' : 'text-primary'}`}>{formatPrice(discountedPrice)}</p>
+            {hasOffer && (
+                 <p className="text-xl font-medium text-muted-foreground line-through">{formatPrice(product.price)}</p>
+            )}
+          </div>
+          
+          {product.wholesaleEnabled && product.wholesaleMinQuantity && (
+            <Alert>
+                <ChevronsRight className="h-4 w-4" />
+                <AlertTitle className='font-headline'>¡Disponible por mayor!</AlertTitle>
+                <AlertDescription>
+                    Este producto tiene un precio especial si compras desde {product.wholesaleMinQuantity} unidades. Contáctanos para más información.
+                </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex items-center gap-4">
-             <Button onClick={() => addToCart(product)} size="lg" className="group/button relative w-48 h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">
+             <Button onClick={() => addToCart({ ...product, price: discountedPrice })} size="lg" className="group/button relative w-48 h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">
                 <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover/button:-translate-y-full">Agregar al Carrito</span>
                 <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 translate-y-full group-hover/button:translate-y-0">
                     <ShoppingCart className="h-6 w-6" />
