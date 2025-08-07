@@ -81,7 +81,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
                 <nav className="grid gap-6 text-lg font-medium mt-6">
                     <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
                       {logo ? (
-                        <div className="relative h-10 w-10">
+                        <div className="relative h-12 w-12">
                           <Image src={logo} alt="Logo de la empresa" fill className="object-contain" />
                         </div>
                       ) : (
