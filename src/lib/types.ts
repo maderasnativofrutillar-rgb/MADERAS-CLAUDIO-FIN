@@ -1,5 +1,6 @@
 
 
+
 export interface Product {
     id: string;
     name: string;
@@ -10,11 +11,17 @@ export interface Product {
     categories?: string[];
     dataAiHint?: string;
     createdAt?: any;
-    // New fields for wholesale and offers
-    wholesaleEnabled?: boolean;
-    wholesaleMinQuantity?: number;
-    wholesalePrice?: number; // Added wholesale price
+    
+    // Wholesale pricing tiers
+    wholesalePrice3?: number;
+    wholesalePrice6?: number;
+    wholesalePrice9?: number;
+
+    // Offer
     offerPercentage?: number;
+
+    // Custom Tag
+    customTag?: string;
   }
   
   export interface CartItem extends Product {

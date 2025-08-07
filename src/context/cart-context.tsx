@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast"
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -21,7 +21,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // This check is to prevent hydration errors when using localStorage with SSR
     if (typeof window !== 'undefined') {
       const storedCart = localStorage.getItem('cart');
       if (storedCart) {
@@ -31,21 +30,49 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+    // Recalculate prices on cart changes in case wholesale prices should apply
+    const updatedCart = cartItems.map(item => {
+        const price = getPriceForQuantity(item, item.quantity);
+        return { ...item, price };
+    });
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
   }, [cartItems]);
 
-  const addToCart = (product: Product) => {
-     const hasOffer = product.offerPercentage && product.offerPercentage > 0;
-     const finalPrice = hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price;
+  const getPriceForQuantity = (product: Product, quantity: number) => {
+    // 1. Check for wholesale prices first
+    if (quantity >= 9 && product.wholesalePrice9 && product.wholesalePrice9 > 0) {
+        return product.wholesalePrice9;
+    }
+    if (quantity >= 6 && product.wholesalePrice6 && product.wholesalePrice6 > 0) {
+        return product.wholesalePrice6;
+    }
+    if (quantity >= 3 && product.wholesalePrice3 && product.wholesalePrice3 > 0) {
+        return product.wholesalePrice3;
+    }
+    
+    // 2. Check for percentage offer
+    if (product.offerPercentage && product.offerPercentage > 0) {
+        return product.price * (1 - product.offerPercentage / 100);
+    }
+    
+    // 3. Return base price
+    return product.price;
+  }
 
+  const addToCart = (product: Product, quantityToAdd = 1) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
+      
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantityToAdd;
+        const newPrice = getPriceForQuantity(product, newQuantity);
         return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id ? { ...item, quantity: newQuantity, price: newPrice } : item
         );
+      } else {
+        const price = getPriceForQuantity(product, quantityToAdd);
+        return [...prevItems, { ...product, quantity: quantityToAdd, price }];
       }
-      return [...prevItems, { ...product, quantity: 1, price: finalPrice }];
     });
      toast({
        title: "Producto añadido",
@@ -74,9 +101,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
+      prevItems.map((item) => {
+        if (item.id === productId) {
+           const newPrice = getPriceForQuantity(item, quantity);
+           return { ...item, quantity, price: newPrice };
+        }
+        return item;
+      })
     );
   };
 

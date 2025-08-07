@@ -127,6 +127,7 @@ export default function ProductDetailPage() {
   const galleryImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
   const hasOffer = product.offerPercentage && product.offerPercentage > 0;
   const discountedPrice = hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price;
+  const hasWholesale = product.wholesalePrice3 || product.wholesalePrice6 || product.wholesalePrice9;
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
@@ -138,11 +139,18 @@ export default function ProductDetailPage() {
             onMouseEnter={() => setIsZooming(true)}
             onMouseLeave={() => setIsZooming(false)}
             >
-             {hasOffer && (
-                <Badge className='absolute top-3 left-3 z-10 bg-orange-500 text-white shadow-lg text-sm py-1 px-3'>
-                    OFERTA {product.offerPercentage}%
-                </Badge>
-            )}
+            <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-2">
+                {hasOffer && (
+                    <Badge className='bg-green-600 text-white shadow-lg text-sm py-1 px-3'>
+                        OFERTA {product.offerPercentage}%
+                    </Badge>
+                )}
+                 {product.customTag && (
+                    <Badge className='bg-sky-500 text-white shadow-lg text-sm py-1 px-3'>
+                        {product.customTag}
+                    </Badge>
+                )}
+            </div>
             <Image
               src={selectedImage || product.image}
               alt={product.name}
@@ -183,18 +191,18 @@ export default function ProductDetailPage() {
             )}
           </div>
           
-          {product.wholesaleEnabled && product.wholesaleMinQuantity && (
+          {hasWholesale && (
             <Alert>
                 <ChevronsRight className="h-4 w-4" />
                 <AlertTitle className='font-headline'>¡Disponible por mayor!</AlertTitle>
                 <AlertDescription>
-                    Este producto tiene un precio especial por compras sobre {product.wholesaleMinQuantity} unidades. Contáctanos para más información.
+                    Este producto tiene un precio especial por compras por volumen. Los descuentos se aplican en el carrito.
                 </AlertDescription>
             </Alert>
           )}
 
           <div className="flex items-center gap-4">
-             <Button onClick={() => addToCart({ ...product, price: discountedPrice })} size="lg" className="group/button relative w-48 h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">
+             <Button onClick={() => addToCart(product)} size="lg" className="group/button relative w-48 h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">
                 <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover/button:-translate-y-full">Agregar al Carrito</span>
                 <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 translate-y-full group-hover/button:translate-y-0">
                     <ShoppingCart className="h-6 w-6" />

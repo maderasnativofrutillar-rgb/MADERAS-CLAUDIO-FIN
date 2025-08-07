@@ -14,11 +14,12 @@ import { db, storage } from '@/lib/firebase';
 import { type Product } from '@/lib/types';
 import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, X, Loader2 } from 'lucide-react';
+import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight } from 'lucide-react';
 import Image from 'next/image';
-import { Switch } from './ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Checkbox } from './ui/checkbox';
+import { categories } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 const MAX_IMAGES = 5;
 
@@ -26,10 +27,12 @@ const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
-    offerPercentage: z.coerce.number().min(0, "El descuento no puede ser negativo.").max(100, "El descuento no puede ser mayor a 100%.").optional(),
-    wholesaleEnabled: z.boolean().default(false),
-    wholesaleMinQuantity: z.coerce.number().optional(),
-    wholesalePrice: z.coerce.number().optional(),
+    offerPercentage: z.coerce.number().min(0, "El descuento no puede ser negativo.").max(100, "El descuento no puede ser mayor a 100%.").optional().default(0),
+    wholesalePrice3: z.coerce.number().min(0).optional().default(0),
+    wholesalePrice6: z.coerce.number().min(0).optional().default(0),
+    wholesalePrice9: z.coerce.number().min(0).optional().default(0),
+    categories: z.array(z.string()).optional().default([]),
+    customTag: z.string().max(10, "La etiqueta no puede tener más de 10 caracteres.").optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -39,24 +42,24 @@ interface ProductFormProps {
 }
 
 const getPathFromUrl = (url: string) => {
-  try {
-    const decodedUrl = decodeURIComponent(url);
-    const match = decodedUrl.match(/\/o\/(.+?)(\?|$)/);
-    if (match && match[1]) {
-      return match[1];
+    try {
+        const decodedUrl = decodeURIComponent(url);
+        const match = decodedUrl.match(/\/o\/(.+?)(\?|$)/);
+        if (match && match[1]) {
+            return match[1];
+        }
+        return null;
+    } catch (e) {
+        console.error("Error decoding URL path", e);
+        return null;
     }
-    return null;
-  } catch (e) {
-    console.error("Error decoding URL path", e);
-    return null;
-  }
 };
 
 export function ProductForm({ product }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
-    
+
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
     const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
@@ -68,13 +71,13 @@ export function ProductForm({ product }: ProductFormProps) {
             description: product?.description || "",
             price: product?.price || 0,
             offerPercentage: product?.offerPercentage || 0,
-            wholesaleEnabled: product?.wholesaleEnabled || false,
-            wholesaleMinQuantity: product?.wholesaleMinQuantity || 3,
-            wholesalePrice: product?.wholesalePrice || 0,
+            wholesalePrice3: product?.wholesalePrice3 || 0,
+            wholesalePrice6: product?.wholesalePrice6 || 0,
+            wholesalePrice9: product?.wholesalePrice9 || 0,
+            categories: product?.categories || [],
+            customTag: product?.customTag || "",
         },
     });
-    
-    const wholesaleEnabled = form.watch('wholesaleEnabled');
 
     useEffect(() => {
         if (product) {
@@ -87,7 +90,7 @@ export function ProductForm({ product }: ProductFormProps) {
         const totalImageCount = imagePreviews.length + newImageFiles.length + acceptedFiles.length;
 
         if (totalImageCount > MAX_IMAGES) {
-            toast({ title: 'Límite de imágenes alcanzado', description: `No puedes subir más de ${MAX_IMAGES} imágenes en total.`, variant: 'destructive'});
+            toast({ title: 'Límite de imágenes alcanzado', description: `No puedes subir más de ${MAX_IMAGES} imágenes en total.`, variant: 'destructive' });
             return;
         }
 
@@ -95,27 +98,26 @@ export function ProductForm({ product }: ProductFormProps) {
 
         const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
         setImagePreviews(prev => [...prev, ...newPreviews]);
-
     }, [toast, imagePreviews.length, newImageFiles.length]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
     });
-    
+
     const removeImage = (index: number, src: string) => {
         if (src.startsWith('http')) {
             setImagesToDelete(prev => [...prev, src]);
         }
         
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+        const fileIndexToRemove = imagePreviews.slice(0, index).filter(p => !p.startsWith('http')).length;
+        const localFileIndexToRemove = index - (imagePreviews.length - newImageFiles.length);
 
-        if (!src.startsWith('http')) {
-            const fileIndexToRemove = imagePreviews.filter(p => p.startsWith('blob:')).indexOf(src);
-             if (fileIndexToRemove > -1) {
-                setNewImageFiles(prev => prev.filter((_, i) => i !== fileIndexToRemove));
-            }
+        if (src.startsWith('blob:')) {
+            setNewImageFiles(prev => prev.filter((_, i) => i !== localFileIndexToRemove));
         }
+
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
     const onSubmit = async (data: ProductFormValues) => {
@@ -133,13 +135,14 @@ export function ProductForm({ product }: ProductFormProps) {
                 const imagePath = getPathFromUrl(urlToDelete);
                 if (imagePath) {
                     try {
-                        await deleteObject(ref(storage, imagePath));
+                        const imageRef = ref(storage, imagePath);
+                        await deleteObject(imageRef);
                     } catch (error) {
                         console.warn(`No se pudo eliminar la imagen ${imagePath}:`, error);
                     }
                 }
             }
-            
+
             const uploadedUrls = await Promise.all(
                 newImageFiles.map(async (file) => {
                     const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
@@ -150,32 +153,34 @@ export function ProductForm({ product }: ProductFormProps) {
             );
 
             const finalImageUrls = [...remainingImageUrls.filter(url => !imagesToDelete.includes(url)), ...uploadedUrls];
-             if (finalImageUrls.length === 0) {
+            if (finalImageUrls.length === 0) {
                 toast({ title: 'Error', description: 'El producto debe tener al menos una imagen.', variant: 'destructive' });
                 setLoading(false);
                 return;
             }
 
-            const productData: Partial<Product> = {
+            const productData: Omit<Product, 'id' | 'createdAt'> = {
                 name: data.name,
                 description: data.description,
                 price: data.price,
                 image: finalImageUrls[0],
                 images: finalImageUrls.slice(1),
                 offerPercentage: data.offerPercentage || 0,
-                wholesaleEnabled: data.wholesaleEnabled || false,
-                wholesaleMinQuantity: data.wholesaleMinQuantity || 3,
-                wholesalePrice: data.wholesalePrice || 0,
+                wholesalePrice3: data.wholesalePrice3 || 0,
+                wholesalePrice6: data.wholesalePrice6 || 0,
+                wholesalePrice9: data.wholesalePrice9 || 0,
+                categories: data.categories || [],
+                customTag: data.customTag || "",
             };
 
             if (product) {
-                await updateDoc(doc(db, 'products', product.id), productData);
+                await updateDoc(doc(db, 'products', product.id), { ...productData });
                 toast({ title: 'Éxito', description: 'Producto actualizado correctamente.' });
             } else {
                 await addDoc(collection(db, 'products'), { ...productData, createdAt: serverTimestamp() });
                 toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
             }
-            
+
             router.push('/admin/dashboard');
             router.refresh();
 
@@ -190,126 +195,145 @@ export function ProductForm({ product }: ProductFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField control={form.control} name="name" render={({field}) => (
-                    <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-                 <FormField control={form.control} name="description" render={({field}) => (
-                    <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
-                )}/>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <Card>
+                    <CardHeader><CardTitle>Información Básica</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                        <FormField control={form.control} name="name" render={({ field }) => (
+                            <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="description" render={({ field }) => (
+                            <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </CardContent>
+                </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField control={form.control} name="price" render={({field}) => (
-                        <FormItem><FormLabel>Precio</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                     <FormField control={form.control} name="offerPercentage" render={({field}) => (
-                        <FormItem>
-                            <FormLabel>Oferta (% de descuento)</FormLabel>
-                            <FormControl><Input type="number" placeholder="Ej: 20" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}/>
-                </div>
+                <Card>
+                    <CardHeader><CardTitle className="flex items-center gap-2"><DollarSign size={20}/> Precios y Ofertas</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <FormField control={form.control} name="price" render={({ field }) => (
+                                <FormItem><FormLabel>Precio Base (CLP)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                             <FormField control={form.control} name="offerPercentage" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Oferta (% de descuento)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="Ej: 20" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader><CardTitle className="flex items-center gap-2"><ChevronsRight size={20}/> Precios por Mayor (Opcional)</CardTitle></CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                         <FormField control={form.control} name="wholesalePrice3" render={({ field }) => (
+                            <FormItem><FormLabel>Precio por 3+ unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="wholesalePrice6" render={({ field }) => (
+                            <FormItem><FormLabel>Precio por 6+ unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="wholesalePrice9" render={({ field }) => (
+                            <FormItem><FormLabel>Precio por 9+ unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </CardContent>
+                </Card>
                 
-                <div className="space-y-4 rounded-lg border p-4">
-                    <FormField
-                        control={form.control}
-                        name="wholesaleEnabled"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between">
-                            <div className="space-y-0.5">
-                                <FormLabel>Habilitar venta por mayor</FormLabel>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    {wholesaleEnabled && (
-                        <div className='grid md:grid-cols-2 gap-6'>
-                            <FormField
-                                control={form.control}
-                                name="wholesaleMinQuantity"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Cantidad mínima</FormLabel>
-                                    <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value || 3)}>
-                                        <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona una cantidad" />
-                                        </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                        <SelectItem value="3">Desde 3 unidades</SelectItem>
-                                        <SelectItem value="5">Desde 5 unidades</SelectItem>
-                                        <SelectItem value="9">Desde 9 unidades</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                 <Card>
+                    <CardHeader><CardTitle className="flex items-center gap-2"><Tag size={20}/> Organización</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="categories"
+                            render={() => (
+                                <FormItem>
+                                    <FormLabel>Categorías</FormLabel>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {categories.map((item) => (
+                                        <FormField
+                                        key={item}
+                                        control={form.control}
+                                        name="categories"
+                                        render={({ field }) => {
+                                            return (
+                                            <FormItem key={item} className="flex flex-row items-start space-x-3 space-y-0">
+                                                <FormControl>
+                                                <Checkbox
+                                                    checked={field.value?.includes(item)}
+                                                    onCheckedChange={(checked) => {
+                                                    return checked
+                                                        ? field.onChange([...field.value, item])
+                                                        : field.onChange(
+                                                            field.value?.filter(
+                                                            (value) => value !== item
+                                                            )
+                                                        )
+                                                    }}
+                                                />
+                                                </FormControl>
+                                                <FormLabel className="font-normal">{item}</FormLabel>
+                                            </FormItem>
+                                            )
+                                        }}
+                                        />
+                                    ))}
+                                    </div>
                                     <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="wholesalePrice"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Precio por mayor</FormLabel>
-                                    <FormControl><Input type="number" placeholder="Precio por unidad" {...field} /></FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    )}
-                </div>
+                                </FormItem>
+                            )}
+                        />
+                         <FormField control={form.control} name="customTag" render={({ field }) => (
+                            <FormItem><FormLabel>Etiqueta Personalizada (Opcional)</FormLabel><FormControl><Input {...field} maxLength={10} placeholder="Ej: Nuevo" /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </CardContent>
+                </Card>
 
-                <FormItem>
-                    <FormLabel>Imágenes (hasta {MAX_IMAGES})</FormLabel>
-                    <FormControl>
-                        <div
-                            {...getRootProps()}
-                            className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border'}`}
-                        >
-                            <input {...getInputProps()} />
-                            <div className="text-center">
-                                <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
-                                <p className="mt-2 text-sm font-semibold">Arrastra y suelta imágenes o haz clic para seleccionar</p>
-                                <p className="text-xs text-muted-foreground">La primera imagen será la principal. Máx {MAX_IMAGES}.</p>
-                            </div>
-                        </div>
-                    </FormControl>
-                </FormItem>
-
-                {imagePreviews.length > 0 && (
-                     <div>
-                        <p className="text-sm font-medium mb-2">Imágenes actuales: ({imagePreviews.length} de {MAX_IMAGES})</p>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                            {imagePreviews.map((src, index) => (
-                                <div key={src} className="relative group aspect-square">
-                                    <Image src={src} alt={`Preview ${index}`} fill className="object-cover rounded-md" unoptimized/>
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                        onClick={() => removeImage(index, src)}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                    {index === 0 && (
-                                        <div className="absolute bottom-0 w-full bg-black/50 text-white text-xs text-center py-0.5 rounded-b-md">Principal</div>
-                                    )}
+                <Card>
+                    <CardHeader><CardTitle>Imágenes (hasta {MAX_IMAGES})</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                        <FormControl>
+                            <div
+                                {...getRootProps()}
+                                className={`relative flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border'}`}
+                            >
+                                <input {...getInputProps()} />
+                                <div className="text-center">
+                                    <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
+                                    <p className="mt-2 text-sm font-semibold">Arrastra y suelta imágenes o haz clic para seleccionar</p>
+                                    <p className="text-xs text-muted-foreground">La primera imagen será la principal. Máx {MAX_IMAGES}.</p>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                
+                            </div>
+                        </FormControl>
+
+                        {imagePreviews.length > 0 && (
+                            <div>
+                                <p className="text-sm font-medium mb-2">Imágenes actuales: ({imagePreviews.length} de {MAX_IMAGES})</p>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                                    {imagePreviews.map((src, index) => (
+                                        <div key={src} className="relative group aspect-square">
+                                            <Image src={src} alt={`Preview ${index}`} fill className="object-cover rounded-md" unoptimized />
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                onClick={() => removeImage(index, src)}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                            {index === 0 && (
+                                                <div className="absolute bottom-0 w-full bg-black/50 text-white text-xs text-center py-0.5 rounded-b-md">Principal</div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
                 <div className="flex gap-4">
                     <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
                         Cancelar
