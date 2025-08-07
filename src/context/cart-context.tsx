@@ -21,9 +21,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      setCartItems(JSON.parse(storedCart));
+    // This check is to prevent hydration errors when using localStorage with SSR
+    if (typeof window !== 'undefined') {
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        setCartItems(JSON.parse(storedCart));
+      }
     }
   }, []);
 
@@ -41,19 +44,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { ...product, quantity: 1 }];
     });
-    // toast({
-    //   title: "Producto añadido",
-    //   description: `${product.name} ha sido añadido al carrito.`,
-    // })
+     toast({
+       title: "Producto añadido",
+       description: `${product.name} ha sido añadido al carrito.`,
+     })
   };
 
   const removeFromCart = (productId: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId));
-    toast({
-        title: "Producto eliminado",
-        description: "El producto ha sido eliminado del carrito.",
-        variant: "destructive"
-      })
+    setCartItems((prevItems) => {
+        const itemToRemove = prevItems.find((item) => item.id === productId);
+        if (!itemToRemove) return prevItems;
+
+        toast({
+            title: "Producto eliminado",
+            description: `${itemToRemove.name} ha sido eliminado del carrito.`,
+            variant: "destructive"
+        });
+        
+        return prevItems.filter((item) => item.id !== productId);
+    });
   };
 
   const updateQuantity = (productId: string, quantity: number) => {

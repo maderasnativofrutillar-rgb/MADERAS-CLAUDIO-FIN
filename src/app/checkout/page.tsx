@@ -23,6 +23,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { MiniProductCard } from '@/components/mini-product-card';
+import { Trash2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const regions = {
   "sur-extremo": { name: "Zona Sur Extrema (Aysén, Magallanes)", price: 10000 },
@@ -42,10 +44,13 @@ const checkoutSchema = z.object({
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
   const [shippingCost, setShippingCost] = useState(0);
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const [couponApplied, setCouponApplied] = useState(false);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -63,7 +68,21 @@ export default function CheckoutPage() {
     setShippingCost(cost);
   };
   
-  const finalTotal = cartTotal + shippingCost;
+  const handleApplyCoupon = () => {
+    // Mock coupon logic
+    if (couponCode.toUpperCase() === 'NATIVO10') {
+      const discountAmount = cartTotal * 0.10;
+      setDiscount(discountAmount);
+      setCouponApplied(true);
+      toast({ title: 'Cupón Aplicado', description: 'Se ha aplicado un 10% de descuento.' });
+    } else {
+      toast({ title: 'Cupón Inválido', description: 'El código de cupón no es válido.', variant: 'destructive' });
+      setDiscount(0);
+      setCouponApplied(false);
+    }
+  };
+
+  const finalTotal = cartTotal - discount + shippingCost;
 
   const suggestedProducts = useMemo(() => {
     const cartItemIds = new Set(cartItems.map(item => item.id));
@@ -75,7 +94,7 @@ export default function CheckoutPage() {
   };
 
   const onSubmit = (data: CheckoutFormValues) => {
-    console.log('Form data:', data, 'Shipping Cost:', shippingCost);
+    console.log('Form data:', data, 'Shipping Cost:', shippingCost, 'Discount:', discount);
     toast({
         title: 'Procesando Pago...',
         description: 'Serás redirigido en un momento.',
@@ -158,7 +177,7 @@ export default function CheckoutPage() {
                   )}/>
                 </div>
                 <Button type="submit" size="lg" className="w-full" disabled={cartItems.length === 0 || shippingCost === 0}>
-                    Pagar con Flow {formatPrice(finalTotal)}
+                    Ir a Pagar {formatPrice(finalTotal)}
                 </Button>
               </form>
             </Form>
@@ -173,24 +192,53 @@ export default function CheckoutPage() {
               <CardContent>
                 <div className="space-y-4">
                   {cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center">
-                      <div className="flex items-center gap-4">
-                        <div className="relative h-16 w-16 rounded-md overflow-hidden">
-                          <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px"/>
+                    <div key={item.id} className="flex justify-between items-center gap-2">
+                        <div className="flex items-center gap-4 flex-1">
+                            <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
+                                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px"/>
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-semibold text-sm">{item.name}</p>
+                                <p className="text-sm font-bold text-primary">{formatPrice(item.price)}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
+                                    <span className="w-4 text-center font-medium text-sm">{item.quantity}</span>
+                                    <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</Button>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                          <p className="font-semibold">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">Cantidad: {item.quantity}</p>
-                        </div>
-                      </div>
-                      <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
+                         <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="h-8 w-8 flex-shrink-0">
+                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </div>
                   ))}
                   <Separator />
+                  <div className="flex gap-2">
+                      <Input 
+                        placeholder="Código de cupón" 
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        className="flex-grow"
+                        disabled={couponApplied}
+                      />
+                      <Button onClick={handleApplyCoupon} disabled={couponApplied || !couponCode}>Aplicar</Button>
+                  </div>
+                  {couponApplied && (
+                    <Alert className="bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700">
+                      <AlertTitle className='font-headline text-green-800 dark:text-green-200'>¡Cupón aplicado!</AlertTitle>
+                      <AlertDescription className='text-green-700 dark:text-green-300'>Has obtenido un 10% de descuento en tu compra.</AlertDescription>
+                    </Alert>
+                  )}
                    <div className="flex justify-between text-muted-foreground">
                     <p>Subtotal</p>
                     <p>{formatPrice(cartTotal)}</p>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-muted-foreground text-green-600 dark:text-green-400">
+                        <p>Descuento</p>
+                        <p>-{formatPrice(discount)}</p>
+                    </div>
+                  )}
                   <div className="flex justify-between text-muted-foreground">
                     <p>Envío</p>
                     <p>{shippingCost > 0 ? formatPrice(shippingCost) : 'Selecciona una región'}</p>
