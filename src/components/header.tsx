@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from "next/link";
@@ -91,7 +92,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
           {logo ? (
-            <div className="relative h-10 w-40">
+            <div className="relative h-12 w-32">
               <Image src={logo} alt="Logo Madera Nativo Sur" fill className="object-contain" />
             </div>
           ) : (
