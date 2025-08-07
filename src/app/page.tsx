@@ -1,14 +1,23 @@
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { products } from "@/lib/constants";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { Product } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Instagram } from "lucide-react";
 import { TypewriterEffect } from "@/components/typewriter-effect";
 import { CarouselWithProgress } from "@/components/product-carousel-progress";
 
-export default function Home() {
-  const featuredProducts = products.slice(0, 8);
+async function getFeaturedProducts(): Promise<Product[]> {
+  const productsCollection = collection(db, "products");
+  const q = query(productsCollection, orderBy("createdAt", "desc"), limit(8));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+}
+
+export default async function Home() {
+  const featuredProducts = await getFeaturedProducts();
 
   return (
     <main className="flex-1">
