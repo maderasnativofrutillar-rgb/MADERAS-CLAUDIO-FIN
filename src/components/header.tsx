@@ -92,7 +92,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
           {logo ? (
-            <Image src={logo} alt="Logo Madera Nativo Sur" width={160} height={64} className="object-contain" />
+            <Image src={logo} alt="Logo Madera Nativo Sur" width={140} height={56} className="object-contain" />
           ) : (
             <>
               <TreePine className="h-8 w-8 text-primary" />
