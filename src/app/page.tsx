@@ -50,14 +50,16 @@ export default async function Home() {
   return (
     <main className="flex-1">
       <section className="relative w-full h-screen text-white">
-        <Image
-          src={siteImages.hero}
-          alt="Taller de Madera Nativo Sur"
-          fill
-          className="object-cover"
-          priority
-          data-ai-hint="wood workshop"
-        />
+        {siteImages.hero && (
+            <Image
+            src={siteImages.hero}
+            alt="Taller de Madera Nativo Sur"
+            fill
+            className="object-cover"
+            priority
+            data-ai-hint="wood workshop"
+            />
+        )}
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative container h-full px-4 md:px-6">
           <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
@@ -115,14 +117,16 @@ export default async function Home() {
                 </Link>
               </Button>
             </div>
-            <Image
-              src={siteImages.essence}
-              alt="Maderas nobles"
-              width={600}
-              height={400}
-              className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-              data-ai-hint="noble woods"
-            />
+            {siteImages.essence && (
+                <Image
+                src={siteImages.essence}
+                alt="Maderas nobles"
+                width={600}
+                height={400}
+                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+                data-ai-hint="noble woods"
+                />
+            )}
           </div>
         </div>
       </section>
