@@ -33,18 +33,16 @@ interface ProductFormProps {
     onSuccess: () => void;
 }
 
-const getImagePathFromUrl = (url: string) => {
+const getImagePathFromUrl = (url: string): string | null => {
     try {
-        const urlObj = new URL(url);
-        const decodedPath = decodeURIComponent(urlObj.pathname);
-        // Regex to find "products/..." and capture the part after it
-        const match = decodedPath.match(/\/o\/(products%2F|products\/)([^?]+)/);
+        const decodedUrl = decodeURIComponent(url);
+        const match = decodedUrl.match(/\/o\/(products%2F|products\/)([^?]+)/);
         if (match && match[2]) {
             return `products/${match[2]}`;
         }
         return null;
     } catch (e) {
-        console.error("Could not parse URL to get image path", url, e);
+        console.error("Error al extraer la ruta de la imagen desde la URL", url, e);
         return null;
     }
 };
@@ -103,14 +101,20 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const removeImage = (index: number) => {
         const imageToRemove = imagePreviews[index];
         if (imageToRemove.startsWith('http')) {
+            // It's an existing image, mark it for deletion
             setImagesToDelete(prev => [...prev, imageToRemove]);
-        } else {
-            const currentFiles = form.getValues('images') || [];
-            const fileIndexToRemove = imagePreviews.slice(0, index).filter(p => p.startsWith('blob:')).length;
-            const updatedFiles = currentFiles.filter((_, i) => i !== fileIndexToRemove);
+        }
+        
+        // Find the corresponding File object if it's a new upload
+        const blobUrlIndex = imagePreviews.slice(0, index).filter(p => p.startsWith('blob:')).length;
+        const currentFiles = form.getValues('images') || [];
+        
+        if (imageToRemove.startsWith('blob:') && currentFiles[blobUrlIndex]) {
+            const updatedFiles = currentFiles.filter((_, i) => i !== blobUrlIndex);
             form.setValue('images', updatedFiles, { shouldValidate: true });
         }
         
+        // Remove from previews
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
@@ -132,19 +136,33 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         }
 
         try {
-            // Step 1: Upload new images and get their URLs
+            // Step 1: Delete images that were marked for removal
+            for (const url of imagesToDelete) {
+                const imagePath = getImagePathFromUrl(url);
+                if (imagePath) {
+                    try {
+                        const storageRef = ref(storage, imagePath);
+                        await deleteObject(storageRef);
+                    } catch (error) {
+                        console.error(`No se pudo eliminar la imagen ${imagePath}:`, error);
+                    }
+                }
+            }
+
+            // Step 2: Upload new images and get their URLs
             const newImageUrls = await Promise.all(
                 newFiles.map(async (file) => {
                     const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                    await uploadBytes(storageRef, file);
+                    const arrayBuffer = await file.arrayBuffer();
+                    await uploadBytes(storageRef, new Uint8Array(arrayBuffer));
                     return getDownloadURL(storageRef);
                 })
             );
 
-            // Step 2: Combine old and new image URLs
+            // Step 3: Combine old and new image URLs
             const finalImageUrls = [...existingImageUrls, ...newImageUrls];
 
-            // Step 3: Prepare product data
+            // Step 4: Prepare product data
             const productData = {
                 name: data.name,
                 description: data.description,
@@ -153,7 +171,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 images: finalImageUrls.slice(1),
             };
             
-            // Step 4: Create or update Firestore document
+            // Step 5: Create or update Firestore document
             if (product) {
                 const productRef = doc(db, 'products', product.id);
                 await updateDoc(productRef, productData);
@@ -166,26 +184,11 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
             }
             
-            // Step 5: Delete images that were marked for removal (only after successful save)
-            await Promise.all(
-                imagesToDelete.map(async (url) => {
-                    const imagePath = getImagePathFromUrl(url);
-                    if (imagePath) {
-                        try {
-                            const storageRef = ref(storage, imagePath);
-                            await deleteObject(storageRef);
-                        } catch (error) {
-                            console.error(`Failed to delete image ${imagePath}:`, error);
-                        }
-                    }
-                })
-            );
-            
             onSuccess();
 
         } catch (error) {
-            console.error("Error saving product: ", error);
-            toast({ title: 'Error', description: 'No se pudo guardar el producto.', variant: 'destructive' });
+            console.error("Error al guardar el producto: ", error);
+            toast({ title: 'Error', description: `No se pudo guardar el producto. ${error instanceof Error ? error.message : ''}`, variant: 'destructive' });
         } finally {
             setLoading(false);
         }
