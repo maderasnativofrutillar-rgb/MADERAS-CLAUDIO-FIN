@@ -75,7 +75,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
                 <nav className="grid gap-6 text-lg font-medium mt-6">
                     <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
                       {logo ? (
-                        <div className="relative h-12 w-12">
+                        <div className="relative h-10 w-10">
                           <Image src={logo} alt="Logo de la empresa" fill className="object-contain" />
                         </div>
                       ) : (
@@ -92,7 +92,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
           {logo ? (
-            <Image src={logo} alt="Logo Madera Nativo Sur" width={208} height={80} className="object-contain" />
+            <Image src={logo} alt="Logo Madera Nativo Sur" width={160} height={64} className="object-contain" />
           ) : (
             <>
               <TreePine className="h-8 w-8 text-primary" />
