@@ -25,7 +25,6 @@ const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
-    // Files are optional on the schema, we'll validate them manually in onSubmit
     images: z.array(z.instanceof(File)).optional(),
 });
 
@@ -36,7 +35,6 @@ interface ProductFormProps {
     onSuccess: () => void;
 }
 
-// More reliable helper to get the storage path from a Firebase Storage URL
 const getPathFromUrl = (url: string) => {
   try {
     const decodedUrl = decodeURIComponent(url);
@@ -46,6 +44,7 @@ const getPathFromUrl = (url: string) => {
     }
     return null;
   } catch (e) {
+    console.error("Error decoding URL path", e);
     return null;
   }
 };
@@ -54,10 +53,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     
-    // Holds both existing URL strings and new blob URL strings for previews
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-    
-    // Keep track of existing image URLs that should be deleted on submit
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
 
     const form = useForm<ProductFormValues>({
@@ -70,7 +66,6 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         },
     });
 
-    // Set initial previews when editing a product
     useEffect(() => {
         if (product) {
             const existingImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
@@ -102,45 +97,51 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const removeImage = (index: number) => {
         const imageToRemove = imagePreviews[index];
 
-        // If it's an existing image (http URL), add it to the deletion queue
         if (imageToRemove.startsWith('http')) {
             setImagesToDelete(prev => [...prev, imageToRemove]);
         }
 
-        // If it's a new image (blob URL), remove it from the form's file list
-        if (imageToRemove.startsWith('blob:')) {
-            const blobUrlIndex = imagePreviews.filter(p => p.startsWith('blob:')).indexOf(imageToRemove);
-            const currentFiles = form.getValues('images') || [];
-            const updatedFiles = currentFiles.filter((_, i) => i !== blobUrlIndex);
-            form.setValue('images', updatedFiles);
-        }
+        const currentFiles = form.getValues('images') || [];
+        const newPreviews = imagePreviews.filter((_, i) => i !== index);
 
-        // Remove from the preview list
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+        if (imageToRemove.startsWith('blob:')) {
+            // Find the index of the blob URL in the preview list to remove the correct file
+            const blobUrlIndex = imagePreviews.filter(p => p.startsWith('blob:')).indexOf(imageToRemove);
+            if (blobUrlIndex > -1) {
+              const updatedFiles = currentFiles.filter((_, i) => i !== blobUrlIndex);
+              form.setValue('images', updatedFiles);
+            }
+        }
+        
+        setImagePreviews(newPreviews);
     };
 
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true);
 
-        const newFiles: File[] = data.images || [];
-        const existingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
-
-        if (existingImageUrls.length + newFiles.length === 0) {
-            toast({ title: 'Error', description: 'Debes tener al menos una imagen.', variant: 'destructive' });
-            setLoading(false);
-            return;
-        }
-
         try {
-            // 1. Delete images marked for removal
-            for (const url of imagesToDelete) {
-                const path = getPathFromUrl(url);
-                if (path) {
-                    await deleteObject(ref(storage, path));
+            const newFiles: File[] = data.images || [];
+            const existingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
+
+            if (existingImageUrls.length + newFiles.length === 0) {
+                toast({ title: 'Error', description: 'Debes subir al menos una imagen.', variant: 'destructive' });
+                setLoading(false);
+                return;
+            }
+            
+            // Step 1: Delete images marked for removal
+            for (const urlToDelete of imagesToDelete) {
+                const imagePath = getPathFromUrl(urlToDelete);
+                if (imagePath) {
+                    try {
+                        await deleteObject(ref(storage, imagePath));
+                    } catch (error) {
+                        console.warn(`Could not delete image ${imagePath}:`, error);
+                    }
                 }
             }
 
-            // 2. Upload new files and get their URLs
+            // Step 2: Upload new files
             const newImageUrls = await Promise.all(
                 newFiles.map(async (file) => {
                     const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
@@ -150,25 +151,19 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 })
             );
 
-            // 3. Combine remaining old URLs with new URLs
+            // Step 3: Combine remaining old URLs with new URLs
             const finalImageUrls = [...existingImageUrls, ...newImageUrls];
 
-            if (finalImageUrls.length === 0) {
-              toast({ title: 'Error', description: 'El producto debe tener al menos una imagen.', variant: 'destructive'});
-              setLoading(false);
-              return;
-            }
-
-            // 4. Prepare data for Firestore
+            // Step 4: Prepare data for Firestore
             const productData = {
                 name: data.name,
                 description: data.description,
                 price: data.price,
-                image: finalImageUrls[0], // First image is the main one
-                images: finalImageUrls.slice(1), // The rest are gallery images
+                image: finalImageUrls[0],
+                images: finalImageUrls.slice(1),
             };
 
-            // 5. Create or Update Firestore document
+            // Step 5: Create or Update Firestore document
             if (product) {
                 await updateDoc(doc(db, 'products', product.id), productData);
                 toast({ title: 'Éxito', description: 'Producto actualizado correctamente.' });
