@@ -1,16 +1,22 @@
 import Link from "next/link";
-import { TreePine, Facebook, Instagram, Twitter, Phone } from "lucide-react";
+import { TreePine, Facebook, Instagram, Twitter, Phone, Mail } from "lucide-react";
+import { categories } from "@/lib/constants";
+
+function slugify(text: string) {
+    if (typeof text !== 'string') return '';
+    return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+}
 
 export function SiteFooter() {
   return (
     <>
       <footer className="border-t bg-secondary/30">
         <div className="container py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            <div className="space-y-4 md:col-span-2">
               <Link href="/" className="flex items-center space-x-2">
                 <TreePine className="h-6 w-6 text-primary" />
-                <span className="font-bold font-headline text-lg">Nativo Sur</span>
+                <span className="font-bold font-headline text-lg">MADERAS NATIVO SUR</span>
               </Link>
               <p className="text-sm text-muted-foreground">
                 Artesanía en madera que cuenta una historia. Desde Frutillar, Chile, al mundo.
@@ -20,10 +26,22 @@ export function SiteFooter() {
               <h4 className="font-headline font-semibold mb-4">Navegación</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link href="/" className="text-muted-foreground hover:text-primary">Inicio</Link></li>
-                <li><Link href="/#products" className="text-muted-foreground hover:text-primary">Tienda</Link></li>
+                <li><Link href="/tienda" className="text-muted-foreground hover:text-primary">Tienda</Link></li>
                 <li><Link href="/about" className="text-muted-foreground hover:text-primary">Nosotros</Link></li>
                 <li><Link href="/contacto" className="text-muted-foreground hover:text-primary">Contacto</Link></li>
                 <li><Link href="/empresas" className="text-muted-foreground hover:text-primary">Empresas</Link></li>
+              </ul>
+            </div>
+             <div>
+              <h4 className="font-headline font-semibold mb-4">Categorías</h4>
+              <ul className="space-y-2 text-sm">
+                {categories.slice(0, 5).map(category => (
+                    <li key={category}>
+                        <Link href={`/tienda?categoria=${slugify(category)}`} className="text-muted-foreground hover:text-primary">
+                            {category}
+                        </Link>
+                    </li>
+                ))}
               </ul>
             </div>
             <div>
@@ -33,14 +51,6 @@ export function SiteFooter() {
                 <li><Link href="/legal/privacidad" className="text-muted-foreground hover:text-primary">Política de Privacidad</Link></li>
                 <li><Link href="/legal/reembolso" className="text-muted-foreground hover:text-primary">Política de Reembolso</Link></li>
               </ul>
-            </div>
-            <div>
-              <h4 className="font-headline font-semibold mb-4">Síguenos</h4>
-              <div className="flex space-x-4">
-                <Link href="#" className="text-muted-foreground hover:text-primary"><Facebook size={20} /></Link>
-                <Link href="#" className="text-muted-foreground hover:text-primary"><Instagram size={20} /></Link>
-                <Link href="#" className="text-muted-foreground hover:text-primary"><Twitter size={20} /></Link>
-              </div>
             </div>
           </div>
           <div className="border-t mt-8 pt-6 text-center text-sm text-muted-foreground">

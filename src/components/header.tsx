@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { TreePine, User, Menu, LogOut } from "lucide-react";
+import { TreePine, User, Menu, LogOut, Mail, Phone } from "lucide-react";
 import { MainNav } from "./main-nav";
 import { CartSheet } from "./cart-sheet";
 import { AnnouncementBar } from "./announcement-bar";
@@ -24,6 +24,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface SiteHeaderProps {
   logo?: string;
@@ -102,7 +108,32 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         <div className="hidden md:flex flex-1 justify-center">
           <MainNav />
         </div>
-        <div className="flex items-center justify-end space-x-1 ml-auto">
+        <div className="flex items-center justify-end space-x-2 ml-auto">
+          <TooltipProvider>
+            <div className="hidden sm:flex items-center space-x-2 border-r pr-2 mr-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a href="mailto:morenosasesorias@gmail.com" className="text-primary hover:text-primary/80">
+                    <Mail className="h-5 w-5" />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>morenosasesorias@gmail.com</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <a href="https://wa.me/56912345678" target="_blank" className="text-primary hover:text-primary/80">
+                    <Phone className="h-5 w-5" />
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>+56 9 1234 5678</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
+
           {user ? (
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
