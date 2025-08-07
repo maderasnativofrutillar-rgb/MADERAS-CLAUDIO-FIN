@@ -9,10 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { collection, addDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { type Product } from '@/lib/types';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -23,9 +23,8 @@ const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
-    images: z.array(z.instanceof(File))
-        .min(1, `Debes subir al menos 1 imagen.`)
-        .max(MAX_IMAGES, `No puedes subir más de ${MAX_IMAGES} imágenes.`),
+    // Make images optional in the schema, we'll validate it in the submit handler
+    images: z.array(z.instanceof(File)).optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -35,10 +34,33 @@ interface ProductFormProps {
     onSuccess: () => void;
 }
 
+// Helper to get image name from URL
+const getImageNameFromUrl = (url: string) => {
+    try {
+        const urlObj = new URL(url);
+        const pathSegments = urlObj.pathname.split('/');
+        const encodedFileName = pathSegments[pathSegments.length - 1];
+        // The file name is usually in the format 'products%2F<actual_name>'
+        const decodedName = decodeURIComponent(encodedFileName).split('/').pop();
+        return decodedName || '';
+    } catch (e) {
+        console.error("Could not parse URL to get image name", url, e);
+        return '';
+    }
+};
+
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
-    const [imagePreviews, setImagePreviews] = useState<string[]>(product?.images || (product?.image ? [product.image] : []));
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    
+    // Store which images to delete on submit
+    const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+
+    useEffect(() => {
+        const existingImages = product ? [product.image, ...(product.images || [])].filter(Boolean) as string[] : [];
+        setImagePreviews(existingImages);
+    }, [product]);
 
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
@@ -55,49 +77,96 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             toast({ title: 'Error de archivo', description: 'Algunos archivos fueron rechazados. Asegúrate que son imágenes.', variant: 'destructive'});
         }
 
-        const currentImages = form.getValues('images') || [];
-        const newImages = acceptedFiles.slice(0, MAX_IMAGES - currentImages.length);
-        const combinedImages = [...currentImages, ...newImages];
+        const currentFiles = form.getValues('images') || [];
+        const existingPreviews = imagePreviews.filter(p => !p.startsWith('blob:')); // Don't count new blob previews
         
-        form.setValue('images', combinedImages, { shouldValidate: true });
+        const totalImageCount = existingPreviews.length + currentFiles.length + acceptedFiles.length;
 
-        const newPreviews = newImages.map(file => URL.createObjectURL(file));
-        setImagePreviews(prev => [...prev, ...newPreviews].slice(0, MAX_IMAGES));
+        if (totalImageCount > MAX_IMAGES) {
+             toast({ title: 'Límite de imágenes alcanzado', description: `No puedes tener más de ${MAX_IMAGES} imágenes.`, variant: 'destructive'});
+             return;
+        }
 
-    }, [form, toast]);
+        const newFiles = [...currentFiles, ...acceptedFiles];
+        form.setValue('images', newFiles, { shouldValidate: true });
+
+        const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+
+    }, [form, toast, imagePreviews]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'image/*': [] },
-        maxFiles: MAX_IMAGES,
     });
     
     const removeImage = (index: number) => {
-        const currentImages = form.getValues('images');
-        const updatedImages = currentImages.filter((_, i) => i !== index);
-        form.setValue('images', updatedImages, { shouldValidate: true });
+        const imageToRemove = imagePreviews[index];
 
-        const updatedPreviews = imagePreviews.filter((_, i) => i !== index);
-        setImagePreviews(updatedPreviews);
+        // If it's an existing image (http URL), add it to the deletion queue
+        if (imageToRemove.startsWith('http')) {
+            setImagesToDelete(prev => [...prev, imageToRemove]);
+        } else {
+             // If it's a new file (blob URL), remove it from the form's files array
+            const currentFiles = form.getValues('images') || [];
+            const fileIndexToRemove = imagePreviews.slice(0, index).filter(p => p.startsWith('blob:')).length;
+            const updatedFiles = currentFiles.filter((_, i) => i !== fileIndexToRemove);
+            form.setValue('images', updatedFiles, { shouldValidate: true });
+        }
+        
+        // Remove from previews
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true);
+
+        const newFiles = data.images || [];
+        const existingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
+
+        // Validation: Check if there's at least one image when creating a new product
+        if (!product && newFiles.length === 0) {
+            toast({ title: 'Error de validación', description: 'Debes subir al menos una imagen para crear un producto.', variant: 'destructive' });
+            setLoading(false);
+            return;
+        }
+
+        // Validation: Check if all images were removed during edit
+        if (product && existingImageUrls.length === 0 && newFiles.length === 0) {
+            toast({ title: 'Error de validación', description: 'Un producto debe tener al menos una imagen.', variant: 'destructive' });
+            setLoading(false);
+            return;
+        }
+
         try {
-            const uploadPromises = data.images.map(async (file) => {
+            // 1. Delete images marked for deletion
+            const deletePromises = imagesToDelete.map(async (url) => {
+                const imageName = getImageNameFromUrl(url);
+                if (imageName) {
+                    const storageRef = ref(storage, `products/${imageName}`);
+                    await deleteObject(storageRef);
+                }
+            });
+            await Promise.all(deletePromises);
+
+            // 2. Upload new images
+            const uploadPromises = newFiles.map(async (file) => {
                 const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
                 await uploadBytes(storageRef, file);
                 return getDownloadURL(storageRef);
             });
 
-            const imageUrls = await Promise.all(uploadPromises);
+            const newImageUrls = await Promise.all(uploadPromises);
+            
+            // 3. Combine old and new URLs
+            const finalImageUrls = [...existingImageUrls, ...newImageUrls];
 
             const productData = {
                 name: data.name,
                 description: data.description,
                 price: data.price,
-                image: imageUrls[0], // First image as primary
-                images: imageUrls.slice(1), // The rest for the gallery
+                image: finalImageUrls[0], // First image as primary
+                images: finalImageUrls.slice(1), // The rest for the gallery
             };
             
             if (product) {
@@ -164,16 +233,16 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
 
                 {imagePreviews.length > 0 && (
                      <div>
-                        <p className="text-sm font-medium mb-2">Imágenes seleccionadas:</p>
+                        <p className="text-sm font-medium mb-2">Imágenes seleccionadas: ({imagePreviews.length} de {MAX_IMAGES})</p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                             {imagePreviews.map((src, index) => (
                                 <div key={index} className="relative group aspect-square">
-                                    <Image src={src} alt={`Preview ${index}`} fill className="object-cover rounded-md" />
+                                    <Image src={src} alt={`Preview ${index}`} fill className="object-cover rounded-md" unoptimized/>
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                         onClick={() => removeImage(index)}
                                     >
                                         <X className="h-4 w-4" />
