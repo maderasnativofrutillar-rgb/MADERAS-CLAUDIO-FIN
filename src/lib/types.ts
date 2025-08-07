@@ -6,6 +6,7 @@ export interface Product {
     price: number;
     image: string; // Primary image
     images?: string[]; // Gallery images
+    categories?: string[];
     dataAiHint?: string;
     // Allow createdAt to be a string for client-side components
     createdAt?: any;

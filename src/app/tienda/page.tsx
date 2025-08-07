@@ -16,6 +16,7 @@ import { categories } from '@/lib/constants';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
 function slugify(text: string) {
+    if (typeof text !== 'string') return '';
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 }
 
@@ -63,7 +64,7 @@ export default function TiendaPage() {
   const filteredAndSortedProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const productCategories = product.categories || [];
+    const productCategories = product.categories?.map(cat => slugify(cat)) || [];
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => productCategories.includes(cat));
 
     return matchesSearch && matchesCategory;
@@ -111,7 +112,7 @@ export default function TiendaPage() {
               <h3 className="font-semibold mb-3">Categorías</h3>
               <div className="space-y-3">
                 {categories.map(category => {
-                  const categorySlug = slugify(category.name);
+                  const categorySlug = slugify(category);
                   return (
                     <div key={categorySlug} className="flex items-center space-x-2">
                       <Checkbox 
@@ -119,7 +120,7 @@ export default function TiendaPage() {
                         checked={selectedCategories.includes(categorySlug)}
                         onCheckedChange={() => handleCategoryChange(categorySlug)}
                       />
-                      <Label htmlFor={categorySlug} className="cursor-pointer">{category.name}</Label>
+                      <Label htmlFor={categorySlug} className="cursor-pointer">{category}</Label>
                     </div>
                   );
                 })}
