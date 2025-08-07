@@ -1,17 +1,20 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Products can be read by anyone, but only written to by authorized users.
+    // Allow public read access to products, but restrict writes to authorized users.
     match /products/{productId} {
       allow get, list: if true;
-      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'supervisor'];
+      allow write: if request.auth != null && 
+                   get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'supervisor'];
     }
 
-    // Users can read their own data. Only admins can modify roles.
+    // Allow users to read their own role, and only admins to modify roles.
     match /users/{userId} {
       allow get: if request.auth != null && request.auth.uid == userId;
-      allow list, write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow list, write: if request.auth != null &&
+                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }

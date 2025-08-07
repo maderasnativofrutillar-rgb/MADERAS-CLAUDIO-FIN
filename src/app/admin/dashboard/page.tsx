@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -92,19 +93,27 @@ export default function DashboardPage() {
     if (!confirm(`¿Estás seguro de que quieres eliminar "${product.name}"?`)) return;
 
     try {
+        // First, store the image URL to delete it later
+        const imageUrl = product.image;
+
+        // Delete the document from Firestore
         await deleteDoc(doc(db, "products", product.id));
-
-        // Create a reference to the file to delete
-        const imageRef = ref(storage, product.image);
-
-        // Delete the file
-        await deleteObject(imageRef);
+        
+        // Now, delete the image from Storage
+        if (imageUrl) {
+            const imageRef = ref(storage, imageUrl);
+            await deleteObject(imageRef);
+        }
 
         toast({ title: 'Éxito', description: 'Producto eliminado correctamente.' });
         await fetchProducts();
     } catch (error) {
-        console.error("Error deleting document: ", error);
-        toast({ title: 'Error', description: 'No se pudo eliminar el producto.', variant: 'destructive' });
+        console.error("Error deleting product or image: ", error);
+        // Attempt to provide a more specific error message if possible
+        const errorMessage = (error as Error).message.includes('storage/object-not-found')
+            ? 'La imagen asociada no se encontró en el almacenamiento, pero el producto fue eliminado.'
+            : 'No se pudo eliminar el producto y/o su imagen.';
+        toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
     }
   };
 
