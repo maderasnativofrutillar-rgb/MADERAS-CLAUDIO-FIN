@@ -26,6 +26,7 @@ async function getProduct(id: string): Promise<Product | null> {
 
 async function getRelatedProducts(currentProductId: string): Promise<Product[]> {
     const productsRef = collection(db, "products");
+    // This query is very basic. For a real app, you might want to query by category or tags.
     const q = query(productsRef, where("id", "!=", currentProductId), limit(4));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
@@ -40,6 +41,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -48,8 +50,8 @@ export default function ProductDetailPage() {
         setLoading(true);
         const productData = await getProduct(id);
         setProduct(productData);
-
         if (productData) {
+            setSelectedImage(productData.image); // Set initial main image
             const relatedData = await getRelatedProducts(id);
             setRelatedProducts(relatedData);
         }
@@ -63,12 +65,19 @@ export default function ProductDetailPage() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
   };
+
+  const galleryImages = [product?.image, ...(product?.images || [])].filter(Boolean) as string[];
   
   if (loading) {
       return (
         <div className="container mx-auto px-4 py-12 md:py-16">
             <div className="grid md:grid-cols-2 gap-12">
-                <Skeleton className="aspect-square w-full rounded-lg" />
+                <div className="space-y-4">
+                  <Skeleton className="aspect-square w-full rounded-lg" />
+                  <div className="grid grid-cols-5 gap-4">
+                      {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-square w-full rounded-lg" />)}
+                  </div>
+                </div>
                 <div className="flex flex-col justify-center space-y-6">
                     <Skeleton className="h-10 w-3/4" />
                     <Skeleton className="h-4 w-full" />
@@ -88,7 +97,7 @@ export default function ProductDetailPage() {
         <h1 className="font-headline text-2xl">Producto no encontrado</h1>
         <p className="text-muted-foreground">No pudimos encontrar el producto que buscas.</p>
         <Button asChild className="mt-4">
-          <Link href="/">Volver a la tienda</Link>
+          <Link href="/tienda">Volver a la tienda</Link>
         </Button>
       </div>
     );
@@ -96,21 +105,39 @@ export default function ProductDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
-      <div className="grid md:grid-cols-2 gap-12">
-        <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            data-ai-hint={product.dataAiHint}
-            unoptimized
-          />
+      <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        <div>
+          <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg mb-4">
+            <Image
+              src={selectedImage || product.image}
+              alt={product.name}
+              fill
+              className="object-cover transition-opacity duration-300"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              data-ai-hint={product.dataAiHint}
+              unoptimized
+            />
+          </div>
+          {galleryImages.length > 1 && (
+            <div className="grid grid-cols-5 gap-2">
+                {galleryImages.map((img, idx) => (
+                    <button key={idx} onClick={() => setSelectedImage(img)} className={`relative aspect-square w-full overflow-hidden rounded-md border-2 transition-colors ${selectedImage === img ? 'border-primary' : 'border-transparent hover:border-primary/50'}`}>
+                        <Image
+                            src={img}
+                            alt={`Vista previa ${idx + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="100px"
+                            unoptimized
+                        />
+                    </button>
+                ))}
+            </div>
+          )}
         </div>
         <div className="flex flex-col justify-center space-y-6">
           <h1 className="font-headline text-3xl md:text-4xl font-bold">{product.name}</h1>
-          <p className="text-muted-foreground text-lg">{product.description}</p>
+          <p className="text-muted-foreground text-lg whitespace-pre-wrap">{product.description}</p>
           <p className="text-3xl font-bold text-primary">{formatPrice(product.price)}</p>
           <div className="flex items-center gap-4">
              <Button onClick={() => addToCart(product)} size="lg" className="group/button relative w-48 h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">

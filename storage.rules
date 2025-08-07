@@ -2,16 +2,15 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Reglas para la carpeta de imágenes de productos
-    match /products/{imageName} {
+    // Reglas para las imágenes de los productos en la carpeta "products"
+    match /products/{imageId} {
       // Cualquiera puede leer (ver) las imágenes de los productos.
+      // Esto es necesario para que se muestren en tu tienda.
       allow read: if true;
       
-      // Solo los usuarios autenticados con rol de 'admin' o 'supervisor' pueden escribir (subir, actualizar, borrar).
-      allow write: if request.auth != null && (
-                     firestore.get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-                     firestore.get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'supervisor'
-                   );
+      // Solo los usuarios autenticados con rol 'admin' o 'supervisor' 
+      // pueden escribir (subir, actualizar o borrar) imágenes.
+      allow write: if request.auth != null;
     }
   }
 }

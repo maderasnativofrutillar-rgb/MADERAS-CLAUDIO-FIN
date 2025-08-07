@@ -5,7 +5,8 @@ export interface Product {
     name: string;
     description: string;
     price: number;
-    image: string;
+    image: string; // Primary image
+    images?: string[]; // Gallery images
     dataAiHint?: string;
     createdAt?: Timestamp;
   }
