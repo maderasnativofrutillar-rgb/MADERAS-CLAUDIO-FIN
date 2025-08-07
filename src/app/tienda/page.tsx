@@ -13,6 +13,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { categories } from '@/lib/constants';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 
 function slugify(text: string) {
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
@@ -20,7 +21,15 @@ function slugify(text: string) {
 
 async function getProducts(): Promise<Product[]> {
   const querySnapshot = await getDocs(collection(db, "products"));
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  const products = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return { 
+          id: doc.id, 
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+      } as Product;
+  });
+  return products;
 }
 
 export default function TiendaPage() {
@@ -54,10 +63,8 @@ export default function TiendaPage() {
   const filteredAndSortedProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => {
-        const categoryWords = cat.split('-');
-        return categoryWords.some(word => product.name.toLowerCase().includes(word) || product.description.toLowerCase().includes(word));
-    });
+    const productCategories = product.categories || [];
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.some(cat => productCategories.includes(cat));
 
     return matchesSearch && matchesCategory;
   }).sort((a: Product, b: Product) => {
@@ -66,10 +73,13 @@ export default function TiendaPage() {
         return a.price - b.price;
       case 'price-desc':
         return b.price - a.price;
+      case 'date-asc':
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case 'date-desc':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       default:
-        // Assuming createdAt exists for default sorting
-        // @ts-ignore
-        return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0);
+        // Default to newest first
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
   });
 
@@ -101,7 +111,7 @@ export default function TiendaPage() {
               <h3 className="font-semibold mb-3">Categorías</h3>
               <div className="space-y-3">
                 {categories.map(category => {
-                  const categorySlug = slugify(category);
+                  const categorySlug = slugify(category.name);
                   return (
                     <div key={categorySlug} className="flex items-center space-x-2">
                       <Checkbox 
@@ -109,7 +119,7 @@ export default function TiendaPage() {
                         checked={selectedCategories.includes(categorySlug)}
                         onCheckedChange={() => handleCategoryChange(categorySlug)}
                       />
-                      <Label htmlFor={categorySlug} className="cursor-pointer">{category}</Label>
+                      <Label htmlFor={categorySlug} className="cursor-pointer">{category.name}</Label>
                     </div>
                   );
                 })}
@@ -128,9 +138,10 @@ export default function TiendaPage() {
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">Más nuevos</SelectItem>
+                <SelectItem value="date-desc">Más nuevos</SelectItem>
                 <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
                 <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
+                 <SelectItem value="date-asc">Más antiguos</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -170,4 +181,3 @@ export default function TiendaPage() {
     </div>
   );
 }
-
