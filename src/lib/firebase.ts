@@ -4,16 +4,15 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
-// TODO: Add your Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "1:your-sender-id:web:your-app-id",
-  measurementId: "G-XXXXXXXXXX"
+  apiKey: "AIzaSyC0heKAl49bE49y8vadmp4cqa2JinFunUo",
+  authDomain: "claudio-madera.firebaseapp.com",
+  projectId: "claudio-madera",
+  storageBucket: "claudio-madera.appspot.com",
+  messagingSenderId: "876259118187",
+  appId: "1:876259118187:web:b356dcdbf551ea8941752e",
+  measurementId: "G-G74ZRM4JQD"
 };
 
 // Initialize Firebase

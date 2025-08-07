@@ -9,10 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useState } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(1, 'La contraseña es requerida'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -20,20 +23,32 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
     const { toast } = useToast();
     const router = useRouter();
+    const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
-    // Mock login logic
-    console.log(data);
-    toast({
-        title: "Inicio de sesión exitoso",
-        description: "Bienvenido de vuelta.",
-    });
-    router.push('/admin/dashboard');
+  const onSubmit = async (data: LoginFormValues) => {
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      toast({
+          title: "Inicio de sesión exitoso",
+          description: "Bienvenido de vuelta.",
+      });
+      router.push('/admin/dashboard');
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+          title: "Error al iniciar sesión",
+          description: "Tus credenciales son incorrectas. Por favor, inténtalo de nuevo.",
+          variant: "destructive"
+      });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -72,8 +87,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Ingresar
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Ingresando...' : 'Ingresar'}
               </Button>
             </form>
           </Form>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { products } from '@/lib/constants';
+import { useEffect, useState } from 'react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -9,16 +9,78 @@ import { useCart } from '@/context/cart-context';
 import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
+import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore";
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+
+async function getProduct(id: string): Promise<Product | null> {
+    const docRef = doc(db, "products", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Product;
+    } else {
+        return null;
+    }
+}
+
+async function getRelatedProducts(currentProductId: string): Promise<Product[]> {
+    const productsRef = collection(db, "products");
+    const q = query(productsRef, where("id", "!=", currentProductId), limit(4));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+}
+
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const { id } = params;
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const { addToCart } = useCart();
+  
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const product = products.find((p) => p.id === id);
+  useEffect(() => {
+    if (!id) return;
 
-  // Exclude current product and limit to 4 related products
-  const relatedProducts = products.filter(p => p.id !== id).slice(0, 4);
+    const fetchProductData = async () => {
+        setLoading(true);
+        const productData = await getProduct(id);
+        setProduct(productData);
+
+        if (productData) {
+            const relatedData = await getRelatedProducts(id);
+            setRelatedProducts(relatedData);
+        }
+        setLoading(false);
+    };
+
+    fetchProductData();
+  }, [id]);
+
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
+  };
+  
+  if (loading) {
+      return (
+        <div className="container mx-auto px-4 py-12 md:py-16">
+            <div className="grid md:grid-cols-2 gap-12">
+                <Skeleton className="aspect-square w-full rounded-lg" />
+                <div className="flex flex-col justify-center space-y-6">
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-12 w-32" />
+                    <Skeleton className="h-12 w-48" />
+                </div>
+            </div>
+        </div>
+      )
+  }
 
   if (!product) {
     return (
@@ -32,10 +94,6 @@ export default function ProductDetailPage() {
     );
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
-  };
-
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
       <div className="grid md:grid-cols-2 gap-12">
@@ -47,6 +105,7 @@ export default function ProductDetailPage() {
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
             data-ai-hint={product.dataAiHint}
+            unoptimized
           />
         </div>
         <div className="flex flex-col justify-center space-y-6">

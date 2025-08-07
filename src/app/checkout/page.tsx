@@ -13,8 +13,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { products } from '@/lib/constants';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Carousel,
   CarouselContent,
@@ -25,6 +24,9 @@ import {
 import { MiniProductCard } from '@/components/mini-product-card';
 import { Trash2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Product } from '@/lib/types';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const regions = {
   "sur-extremo": { name: "Zona Sur Extrema (Aysén, Magallanes)", price: 10000 },
@@ -51,6 +53,16 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponApplied, setCouponApplied] = useState(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const querySnapshot = await getDocs(collection(db, "products"));
+      const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      setAllProducts(productsData);
+    };
+    fetchProducts();
+  }, []);
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -85,9 +97,10 @@ export default function CheckoutPage() {
   const finalTotal = cartTotal - discount + shippingCost;
 
   const suggestedProducts = useMemo(() => {
+    if (allProducts.length === 0) return [];
     const cartItemIds = new Set(cartItems.map(item => item.id));
-    return products.filter(p => !cartItemIds.has(p.id)).sort(() => 0.5 - Math.random()).slice(0, 6);
-  }, [cartItems]);
+    return allProducts.filter(p => !cartItemIds.has(p.id)).sort(() => 0.5 - Math.random()).slice(0, 6);
+  }, [cartItems, allProducts]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
@@ -195,7 +208,7 @@ export default function CheckoutPage() {
                     <div key={item.id} className="flex justify-between items-center gap-2">
                         <div className="flex items-center gap-4 flex-1">
                             <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
-                                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px"/>
+                                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="64px" unoptimized/>
                             </div>
                             <div className="flex-1">
                                 <p className="font-semibold text-sm">{item.name}</p>

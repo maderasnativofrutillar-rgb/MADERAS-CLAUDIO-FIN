@@ -33,6 +33,7 @@ export function MiniProductCard({ product, className }: MiniProductCardProps) {
                     className="object-cover transition-transform duration-300 group-hover/card:scale-105"
                     sizes="150px"
                     data-ai-hint={product.dataAiHint}
+                    unoptimized
                 />
                 </div>
             </CardHeader>

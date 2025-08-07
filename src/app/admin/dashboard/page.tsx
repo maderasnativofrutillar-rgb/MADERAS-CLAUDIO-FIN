@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, orderBy, query } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +37,9 @@ export default function DashboardPage() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    const querySnapshot = await getDocs(collection(db, "products"));
+    const productsCollection = collection(db, "products");
+    const q = query(productsCollection, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
     const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     setProducts(productsData);
     setLoading(false);
@@ -79,7 +81,7 @@ export default function DashboardPage() {
         toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
         setIsDialogOpen(false);
         form.reset();
-        fetchProducts();
+        await fetchProducts();
     } catch (error) {
         console.error("Error adding document: ", error);
         toast({ title: 'Error', description: 'No se pudo añadir el producto.', variant: 'destructive' });
@@ -92,11 +94,14 @@ export default function DashboardPage() {
     try {
         await deleteDoc(doc(db, "products", product.id));
 
+        // Create a reference to the file to delete
         const imageRef = ref(storage, product.image);
+
+        // Delete the file
         await deleteObject(imageRef);
 
         toast({ title: 'Éxito', description: 'Producto eliminado correctamente.' });
-        fetchProducts();
+        await fetchProducts();
     } catch (error) {
         console.error("Error deleting document: ", error);
         toast({ title: 'Error', description: 'No se pudo eliminar el producto.', variant: 'destructive' });
@@ -176,6 +181,7 @@ export default function DashboardPage() {
                         height="64"
                         src={product.image}
                         width="64"
+                        unoptimized
                         />
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>

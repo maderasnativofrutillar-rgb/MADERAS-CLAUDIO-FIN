@@ -22,7 +22,7 @@ export default async function Home() {
   return (
     <main className="flex-1">
       <section className="relative w-full h-screen text-white">
-        <Image 
+        <Image
           src="https://placehold.co/1920x1080.png"
           alt="Taller de Madera Nativo Sur"
           fill
@@ -69,7 +69,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="mt-12">
-            <CarouselWithProgress products={featuredProducts} />
+             <CarouselWithProgress products={featuredProducts} />
           </div>
         </div>
       </section>

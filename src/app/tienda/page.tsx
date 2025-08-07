@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { products } from '@/lib/constants';
 import { ProductCard } from '@/components/product-card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,28 +9,39 @@ import { Label } from '@/components/ui/label';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Product } from '@/lib/types';
-
-const categories = [
-    "Tablas para Servir",
-    "Regalos Personalizados",
-    "Tablas de Cocina",
-    "Platos y Accesorios",
-    "Empresas y Regalos Corporativos",
-    "Tablas de Picoteo",
-    "Despedida de Soltera",
-];
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+import { categories } from '@/lib/constants';
 
 function slugify(text: string) {
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+}
+
+async function getProducts(): Promise<Product[]> {
+  const querySnapshot = await getDocs(collection(db, "products"));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
 }
 
 export default function TiendaPage() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('categoria');
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategory ? [initialCategory] : []);
   const [sortOrder, setSortOrder] = useState('default');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const productsData = await getProducts();
+      setProducts(productsData);
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
 
   const handleCategoryChange = (categorySlug: string) => {
     setSelectedCategories(prev => 
@@ -57,7 +67,9 @@ export default function TiendaPage() {
       case 'price-desc':
         return b.price - a.price;
       default:
-        return 0;
+        // Assuming createdAt exists for default sorting
+        // @ts-ignore
+        return (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0);
     }
   });
 
@@ -116,14 +128,33 @@ export default function TiendaPage() {
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="default">Relevancia</SelectItem>
+                <SelectItem value="default">Más nuevos</SelectItem>
                 <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
                 <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          {filteredAndSortedProducts.length > 0 ? (
+          
+          {loading ? (
+             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader>
+                            <Skeleton className="h-48 w-full" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-4 w-3/4 mb-2" />
+                            <Skeleton className="h-3 w-full" />
+                            <Skeleton className="h-3 w-1/2 mt-1" />
+                        </CardContent>
+                        <CardFooter className="flex justify-between">
+                             <Skeleton className="h-8 w-20" />
+                             <Skeleton className="h-10 w-28" />
+                        </CardFooter>
+                    </Card>
+                ))}
+             </div>
+          ) : filteredAndSortedProducts.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAndSortedProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
@@ -139,3 +170,4 @@ export default function TiendaPage() {
     </div>
   );
 }
+
