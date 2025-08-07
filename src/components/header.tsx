@@ -62,7 +62,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <AnnouncementBar />
-      <div className="container flex h-20 items-center">
+      <div className="container flex h-24 items-center">
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
@@ -75,7 +75,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
                 <nav className="grid gap-6 text-lg font-medium mt-6">
                     <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
                       {logo ? (
-                        <div className="relative h-10 w-10">
+                        <div className="relative h-12 w-12">
                           <Image src={logo} alt="Logo de la empresa" fill className="object-contain" />
                         </div>
                       ) : (
@@ -92,13 +92,12 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
           {logo ? (
-            <div className="relative h-16 w-40">
+            <div className="relative h-20 w-52">
               <Image src={logo} alt="Logo Madera Nativo Sur" fill className="object-contain" />
             </div>
           ) : (
             <>
-              <TreePine className="h-6 w-6 text-primary" />
-              <span className="inline-block font-bold font-headline">Madera Nativo Sur</span>
+              <TreePine className="h-8 w-8 text-primary" />
             </>
           )}
         </Link>
