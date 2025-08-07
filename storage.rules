@@ -2,15 +2,11 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow public read access to product images
-    match /products/{allPaths=**} {
+    // Allow public read on product images
+    match /products/{productId}/{fileName} {
       allow read: if true;
-      allow write: if request.auth != null && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'supervisor'];
-    }
-
-    // Deny all other reads/writes by default
-    match /{allPaths=**} {
-      allow read, write: if false;
+      allow write: if request.auth != null && 
+                   get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'supervisor'];
     }
   }
 }
