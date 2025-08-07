@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Seedling, Loader2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, PackagePlus, Loader2 } from 'lucide-react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -218,7 +219,7 @@ export default function DashboardPage() {
                         Añadir mi primer producto
                     </Button>
                     <Button variant="secondary" onClick={seedDatabase} disabled={seeding}>
-                        {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Seedling className="mr-2 h-4 w-4" />}
+                        {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PackagePlus className="mr-2 h-4 w-4" />}
                         {seeding ? 'Cargando...' : 'Cargar productos de ejemplo'}
                     </Button>
                 </div>
