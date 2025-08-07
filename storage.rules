@@ -2,11 +2,14 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Permite que cualquiera lea imágenes, necesario para mostrarlas en la tienda.
+    // Reglas para las imágenes de los productos en la carpeta "products"
     match /products/{imageId} {
+      // Cualquiera puede leer (ver) las imágenes de los productos.
+      // Esto es necesario para que se muestren en tu tienda.
       allow read: if true;
-      // Solo permite escribir (subir, borrar, actualizar) a usuarios autenticados.
-      // Esta es una regla de seguridad básica pero funcional para este caso de uso.
+      
+      // Solo los usuarios autenticados pueden escribir (subir, actualizar o borrar) imágenes.
+      // En una app real, podrías restringir esto a roles específicos (ej. 'admin').
       allow write: if request.auth != null;
     }
   }
