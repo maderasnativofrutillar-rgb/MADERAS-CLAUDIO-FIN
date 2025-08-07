@@ -98,7 +98,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
           {logo ? (
-            <Image src={logo} alt="Logo Madera Nativo Sur" width={140} height={56} className="object-contain" />
+              <Image src={logo} alt="Logo Madera Nativo Sur" width={140} height={56} className="object-contain" />
           ) : (
             <>
               <TreePine className="h-8 w-8 text-primary" />
@@ -109,30 +109,16 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
           <MainNav />
         </div>
         <div className="flex items-center justify-end space-x-2 ml-auto">
-          <TooltipProvider>
-            <div className="hidden sm:flex items-center space-x-2 border-r pr-2 mr-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <a href="mailto:morenosasesorias@gmail.com" className="text-primary hover:text-primary/80">
-                    <Mail className="h-5 w-5" />
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>morenosasesorias@gmail.com</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <a href="https://wa.me/56912345678" target="_blank" className="text-primary hover:text-primary/80">
-                    <Phone className="h-5 w-5" />
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>+56 9 1234 5678</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </TooltipProvider>
+           <div className="hidden lg:flex items-center space-x-4 border-r pr-4 mr-2">
+              <a href="mailto:morenosasesorias@gmail.com" className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+                  <Mail className="h-5 w-5" />
+                  <span className="font-medium">morenosasesorias@gmail.com</span>
+              </a>
+              <a href="https://wa.me/56912345678" target="_blank" className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+                  <Phone className="h-5 w-5" />
+                  <span className="font-medium">+56 9 1234 5678</span>
+              </a>
+          </div>
 
           {user ? (
              <DropdownMenu>
@@ -162,13 +148,22 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link
-              href="/login"
-              className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
-            >
-              <User className="h-5 w-5" />
-              <span className="sr-only">Login</span>
-            </Link>
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Link
+                          href="/login"
+                          className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+                        >
+                          <User className="h-5 w-5" />
+                          <span className="sr-only">Login</span>
+                        </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Acceso Admin</p>
+                    </TooltipContent>
+                </Tooltip>
+             </TooltipProvider>
           )}
           <CartSheet />
         </div>
