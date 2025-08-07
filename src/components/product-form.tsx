@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -20,15 +18,14 @@ import { UploadCloud, X, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useRouter } from 'next/navigation';
 
 const MAX_IMAGES = 5;
 
-// Schema for form validation
 const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
-    images: z.array(z.any()).optional(),
     offerPercentage: z.coerce.number().min(0, "El descuento no puede ser negativo.").max(100, "El descuento no puede ser mayor a 100%.").optional(),
     wholesaleEnabled: z.boolean().default(false),
     wholesaleMinQuantity: z.coerce.number().optional(),
@@ -38,7 +35,6 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormProps {
     product?: Product | null;
-    onSuccess: () => void;
 }
 
 const getPathFromUrl = (url: string) => {
@@ -55,9 +51,10 @@ const getPathFromUrl = (url: string) => {
   }
 };
 
-export function ProductForm({ product, onSuccess }: ProductFormProps) {
+export function ProductForm({ product }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
     
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
@@ -69,7 +66,6 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             name: product?.name || "",
             description: product?.description || "",
             price: product?.price || 0,
-            images: [],
             offerPercentage: product?.offerPercentage || 0,
             wholesaleEnabled: product?.wholesaleEnabled || false,
             wholesaleMinQuantity: product?.wholesaleMinQuantity || 3,
@@ -83,8 +79,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
             const existingImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
             setImagePreviews(existingImages);
         }
-        form.register('images');
-    }, [product, form]);
+    }, [product]);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         const totalImageCount = imagePreviews.length + newImageFiles.length + acceptedFiles.length;
@@ -107,46 +102,43 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     });
     
     const removeImage = (index: number, src: string) => {
-        // If it's an existing image from Storage, add to delete queue
         if (src.startsWith('http')) {
             setImagesToDelete(prev => [...prev, src]);
-        } else {
-            // If it's a new blob image, remove from newImageFiles
+        }
+        
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+
+        if (!src.startsWith('http')) {
             const fileIndexToRemove = imagePreviews.filter(p => p.startsWith('blob:')).indexOf(src);
-            if (fileIndexToRemove > -1) {
+             if (fileIndexToRemove > -1) {
                 setNewImageFiles(prev => prev.filter((_, i) => i !== fileIndexToRemove));
             }
         }
-        // Remove from previews
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true);
 
         try {
-            const existingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
-
-            if (existingImageUrls.length + newImageFiles.length === 0) {
+            const remainingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
+            if (remainingImageUrls.length + newImageFiles.length === 0) {
                 toast({ title: 'Error', description: 'Debes subir al menos una imagen.', variant: 'destructive' });
                 setLoading(false);
                 return;
             }
-            
-            // Step 1: Delete images marked for removal
+
             for (const urlToDelete of imagesToDelete) {
                 const imagePath = getPathFromUrl(urlToDelete);
                 if (imagePath) {
                     try {
                         await deleteObject(ref(storage, imagePath));
                     } catch (error) {
-                        console.warn(`Could not delete image ${imagePath}:`, error);
+                        console.warn(`No se pudo eliminar la imagen ${imagePath}:`, error);
                     }
                 }
             }
-
-            // Step 2: Upload new files
-            const newImageUrls = await Promise.all(
+            
+            const uploadedUrls = await Promise.all(
                 newImageFiles.map(async (file) => {
                     const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
                     const fileBuffer = await file.arrayBuffer();
@@ -155,15 +147,13 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 })
             );
 
-            // Step 3: Combine remaining old URLs with new URLs
-            const finalImageUrls = [...existingImageUrls.filter(url => !imagesToDelete.includes(url)), ...newImageUrls];
+            const finalImageUrls = [...remainingImageUrls.filter(url => !imagesToDelete.includes(url)), ...uploadedUrls];
              if (finalImageUrls.length === 0) {
                 toast({ title: 'Error', description: 'El producto debe tener al menos una imagen.', variant: 'destructive' });
                 setLoading(false);
                 return;
             }
 
-            // Step 4: Prepare data for Firestore
             const productData: Partial<Product> = {
                 name: data.name,
                 description: data.description,
@@ -175,7 +165,6 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 wholesaleMinQuantity: data.wholesaleMinQuantity || 3,
             };
 
-            // Step 5: Create or Update Firestore document
             if (product) {
                 await updateDoc(doc(db, 'products', product.id), productData);
                 toast({ title: 'Éxito', description: 'Producto actualizado correctamente.' });
@@ -184,7 +173,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                 toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
             }
             
-            onSuccess();
+            router.push('/admin/dashboard');
 
         } catch (error) {
             console.error("Error saving product: ", error);
@@ -243,7 +232,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Cantidad mínima por mayor</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={String(field.value || 3)}>
+                                <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value || 3)}>
                                     <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Selecciona una cantidad" />
@@ -304,10 +293,15 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
                     </div>
                 )}
                 
-                <Button type="submit" disabled={loading} className="w-full">
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {loading ? 'Guardando...' : (product ? 'Actualizar Producto' : 'Crear Producto')}
-                </Button>
+                <div className="flex gap-4">
+                    <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" disabled={loading} className="flex-grow">
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {loading ? 'Guardando...' : (product ? 'Actualizar Producto' : 'Crear Producto')}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

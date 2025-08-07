@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,13 +8,12 @@ import { MoreHorizontal, PlusCircle, Package } from 'lucide-react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { collection, getDocs, deleteDoc, doc, orderBy, query } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { ProductForm } from '@/components/product-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 // Helper to get image path from URL for deletion
 const getImagePathFromUrl = (url: string): string | null => {
@@ -36,10 +34,9 @@ const getImagePathFromUrl = (url: string): string | null => {
 
 export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -78,21 +75,24 @@ export default function DashboardPage() {
     try {
         const imagesToDelete = [product.image, ...(product.images || [])].filter(Boolean) as string[];
 
+        // Delete Firestore document first
         await deleteDoc(doc(db, "products", product.id));
 
+        // Then delete images from Storage
         for (const imageUrl of imagesToDelete) {
             const imagePath = getImagePathFromUrl(imageUrl);
             if (imagePath) {
                 try {
                     await deleteObject(ref(storage, imagePath));
                 } catch (storageError) {
+                    // Log error but don't block the process if an image fails to delete
                     console.error(`Failed to delete image ${imagePath}:`, storageError);
                 }
             }
         }
 
         toast({ title: 'Éxito', description: 'Producto eliminado correctamente.' });
-        await fetchProducts();
+        await fetchProducts(); // Refresh the list
     } catch (error) {
         console.error("Error deleting product: ", error);
         toast({ title: 'Error', description: 'No se pudo eliminar el producto.', variant: 'destructive' });
@@ -100,19 +100,11 @@ export default function DashboardPage() {
   };
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setIsDialogOpen(true);
+    router.push(`/admin/products/form?id=${product.id}`);
   };
   
   const handleAdd = () => {
-    setEditingProduct(null);
-    setIsDialogOpen(true);
-  };
-
-  const onFormSuccess = async () => {
-    await fetchProducts();
-    setIsDialogOpen(false);
-    setEditingProduct(null);
+    router.push('/admin/products/form');
   };
 
   return (
@@ -200,22 +192,6 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
-      
-      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
-          setIsDialogOpen(isOpen);
-          if (!isOpen) setEditingProduct(null);
-      }}>
-        <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-                <DialogTitle className='font-headline'>{editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
-                <DialogDescription>{editingProduct ? 'Actualiza los detalles del producto.' : 'Completa los detalles para añadir un nuevo producto.'}</DialogDescription>
-            </DialogHeader>
-            <ProductForm
-                product={editingProduct}
-                onSuccess={onFormSuccess}
-            />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
