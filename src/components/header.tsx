@@ -37,10 +37,12 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ logo }: SiteHeaderProps) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   
   useEffect(() => {
+    setIsClient(true);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
@@ -120,7 +122,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
               </a>
           </div>
 
-          {user ? (
+          {isClient && user ? (
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
