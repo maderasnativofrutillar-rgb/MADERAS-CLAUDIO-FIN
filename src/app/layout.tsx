@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -40,7 +41,9 @@ export default async function RootLayout({
   
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>{siteImages.favicon && <link rel="icon" href={siteImages.favicon} sizes="any" />}</head>
+      <head>
+        {siteImages.favicon && <link rel="icon" href={siteImages.favicon} sizes="any" />}
+      </head>
       <body
         className={cn(
           'min-h-screen bg-background font-body antialiased'
