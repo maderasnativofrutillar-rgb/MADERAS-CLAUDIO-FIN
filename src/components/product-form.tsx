@@ -23,7 +23,6 @@ const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
-    // Make images optional in the schema, we'll validate it in the submit handler
     images: z.array(z.instanceof(File)).optional(),
 });
 
@@ -34,30 +33,28 @@ interface ProductFormProps {
     onSuccess: () => void;
 }
 
-// Helper to get image name from URL
-const getImageNameFromUrl = (url: string) => {
+const getImagePathFromUrl = (url: string) => {
     try {
         const urlObj = new URL(url);
-        // The file name is in the path, after 'products%2F'. We need to decode it.
-        const pathSegments = urlObj.pathname.split('/');
-        const encodedFileName = pathSegments.pop()?.split('?')[0] ?? '';
-        if (encodedFileName.includes('products%2F')) {
-             return decodeURIComponent(encodedFileName.split('products%2F')[1]);
+        const decodedPath = decodeURIComponent(urlObj.pathname);
+        // Regex to find "products/..." and capture the part after it
+        const match = decodedPath.match(/\/o\/(products%2F|products\/)([^?]+)/);
+        if (match && match[2]) {
+            return `products/${match[2]}`;
         }
-        // Fallback for different URL structures if needed, though the above should be robust.
-        return decodeURIComponent(encodedFileName);
+        return null;
     } catch (e) {
-        console.error("Could not parse URL to get image name", url, e);
-        return '';
+        console.error("Could not parse URL to get image path", url, e);
+        return null;
     }
 };
+
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     
-    // Store which images to delete on submit
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
 
     useEffect(() => {
@@ -81,7 +78,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         }
 
         const currentFiles = form.getValues('images') || [];
-        const existingPreviews = imagePreviews.filter(p => !p.startsWith('blob:')); // Don't count new blob previews
+        const existingPreviews = imagePreviews.filter(p => !p.startsWith('blob:'));
         
         const totalImageCount = existingPreviews.length + currentFiles.length + acceptedFiles.length;
 
@@ -105,19 +102,15 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     
     const removeImage = (index: number) => {
         const imageToRemove = imagePreviews[index];
-
-        // If it's an existing image (http URL), add it to the deletion queue
         if (imageToRemove.startsWith('http')) {
             setImagesToDelete(prev => [...prev, imageToRemove]);
         } else {
-             // If it's a new file (blob URL), remove it from the form's files array
             const currentFiles = form.getValues('images') || [];
             const fileIndexToRemove = imagePreviews.slice(0, index).filter(p => p.startsWith('blob:')).length;
             const updatedFiles = currentFiles.filter((_, i) => i !== fileIndexToRemove);
             form.setValue('images', updatedFiles, { shouldValidate: true });
         }
         
-        // Remove from previews
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
@@ -127,14 +120,11 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         const newFiles = data.images || [];
         const existingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
 
-        // Validation: Check if there's at least one image when creating a new product
         if (!product && newFiles.length === 0) {
             toast({ title: 'Error de validación', description: 'Debes subir al menos una imagen para crear un producto.', variant: 'destructive' });
             setLoading(false);
             return;
         }
-
-        // Validation: Check if all images were removed during edit
         if (product && existingImageUrls.length === 0 && newFiles.length === 0) {
             toast({ title: 'Error de validación', description: 'Un producto debe tener al menos una imagen.', variant: 'destructive' });
             setLoading(false);
@@ -142,50 +132,57 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         }
 
         try {
-            // 1. Delete images marked for deletion
-            const deletePromises = imagesToDelete.map(async (url) => {
-                const imageName = getImageNameFromUrl(url);
-                if (imageName) {
-                    const storageRef = ref(storage, `products/${imageName}`);
-                    await deleteObject(storageRef);
-                }
-            });
-            await Promise.all(deletePromises);
+            // Step 1: Upload new images and get their URLs
+            const newImageUrls = await Promise.all(
+                newFiles.map(async (file) => {
+                    const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    return getDownloadURL(storageRef);
+                })
+            );
 
-            // 2. Upload new images
-            const uploadPromises = newFiles.map(async (file) => {
-                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                await uploadBytes(storageRef, file);
-                return getDownloadURL(storageRef);
-            });
-
-            const newImageUrls = await Promise.all(uploadPromises);
-            
-            // 3. Combine old and new URLs
+            // Step 2: Combine old and new image URLs
             const finalImageUrls = [...existingImageUrls, ...newImageUrls];
 
+            // Step 3: Prepare product data
             const productData = {
                 name: data.name,
                 description: data.description,
                 price: data.price,
-                image: finalImageUrls[0], // First image as primary
-                images: finalImageUrls.slice(1), // The rest for the gallery
+                image: finalImageUrls[0],
+                images: finalImageUrls.slice(1),
             };
             
+            // Step 4: Create or update Firestore document
             if (product) {
-                // Update existing product
                 const productRef = doc(db, 'products', product.id);
                 await updateDoc(productRef, productData);
-                 toast({ title: 'Éxito', description: 'Producto actualizado correctamente.' });
+                toast({ title: 'Éxito', description: 'Producto actualizado correctamente.' });
             } else {
-                // Add new product
                 await addDoc(collection(db, "products"), {
                     ...productData,
                     createdAt: serverTimestamp(),
                 });
                 toast({ title: 'Éxito', description: 'Producto añadido correctamente.' });
             }
+            
+            // Step 5: Delete images that were marked for removal (only after successful save)
+            await Promise.all(
+                imagesToDelete.map(async (url) => {
+                    const imagePath = getImagePathFromUrl(url);
+                    if (imagePath) {
+                        try {
+                            const storageRef = ref(storage, imagePath);
+                            await deleteObject(storageRef);
+                        } catch (error) {
+                            console.error(`Failed to delete image ${imagePath}:`, error);
+                        }
+                    }
+                })
+            );
+            
             onSuccess();
+
         } catch (error) {
             console.error("Error saving product: ", error);
             toast({ title: 'Error', description: 'No se pudo guardar el producto.', variant: 'destructive' });
