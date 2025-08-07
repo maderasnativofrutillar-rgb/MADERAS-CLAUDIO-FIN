@@ -35,6 +35,8 @@ async function getSiteImages(): Promise<SiteImages> {
             essence: "https://placehold.co/600x400.png",
             about: "https://placehold.co/800x1000.png",
             portfolio: defaultPortfolioImages.map(p => p.src),
+            logo: "",
+            favicon: "",
         };
     }
 }
@@ -81,14 +83,14 @@ export default async function EmpresasPage() {
               {portfolioImages.map((image, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                   <div className="p-1">
-                    <Card className="overflow-hidden">
+                    <Card className="overflow-hidden group">
                       <CardContent className="p-0">
                         <div className="aspect-video relative">
                             <Image
                                 src={image.src}
                                 alt={image.alt}
                                 fill
-                                className="object-cover transition-transform duration-300 hover:scale-105"
+                                className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-125"
                                 data-ai-hint={image.dataAiHint}
                             />
                         </div>

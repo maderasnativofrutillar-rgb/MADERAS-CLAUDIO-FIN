@@ -38,6 +38,8 @@ async function getSiteImages(): Promise<SiteImages> {
             essence: "https://placehold.co/600x400.png",
             about: "https://placehold.co/800x1000.png",
             portfolio: Array(5).fill("https://placehold.co/600x400.png"),
+            logo: "",
+            favicon: ""
         };
     }
 }

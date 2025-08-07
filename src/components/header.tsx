@@ -14,6 +14,7 @@ import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,8 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+interface SiteHeaderProps {
+  logo?: string;
+}
 
-export function SiteHeader() {
+export function SiteHeader({ logo }: SiteHeaderProps) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -69,8 +73,14 @@ export function SiteHeader() {
             <SheetContent side="left">
                 <nav className="grid gap-6 text-lg font-medium mt-6">
                     <Link href="/" className="flex items-center gap-2 text-lg font-semibold mb-4">
+                      {logo ? (
+                        <div className="relative h-8 w-8">
+                          <Image src={logo} alt="Logo de la empresa" fill className="object-contain" />
+                        </div>
+                      ) : (
                         <TreePine className="h-6 w-6 text-primary" />
-                        <span className="font-bold font-headline">Nativo Sur</span>
+                      )}
+                      <span className="font-bold font-headline">Nativo Sur</span>
                     </Link>
                     {navLinks.map(({ href, label }) => (
                          <Link key={href} href={href} className="hover:text-primary">{label}</Link>
@@ -80,8 +90,16 @@ export function SiteHeader() {
           </Sheet>
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
-          <TreePine className="h-6 w-6 text-primary" />
-          <span className="inline-block font-bold font-headline">Madera Nativo Sur</span>
+          {logo ? (
+            <div className="relative h-10 w-40">
+              <Image src={logo} alt="Logo Madera Nativo Sur" fill className="object-contain" />
+            </div>
+          ) : (
+            <>
+              <TreePine className="h-6 w-6 text-primary" />
+              <span className="inline-block font-bold font-headline">Madera Nativo Sur</span>
+            </>
+          )}
         </Link>
         <div className="hidden md:flex flex-1 justify-center">
           <MainNav />

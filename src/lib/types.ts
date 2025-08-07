@@ -31,5 +31,7 @@ export interface Product {
     essence: string;
     about: string;
     portfolio: string[];
+    logo: string;
+    favicon: string;
   }
   

@@ -18,6 +18,8 @@ import { useDropzone } from 'react-dropzone';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 
 const siteImagesSchema = z.object({
+  logo: z.any(),
+  favicon: z.any(),
   hero: z.any(),
   essence: z.any(),
   about: z.any(),
@@ -56,7 +58,7 @@ const ImageUploadField = ({ name, label, setValue, currentImageUrl }: { name: ke
                 </FormControl>
                 {preview && (
                     <div className="relative aspect-video w-full">
-                        <Image src={preview} alt={`${label} preview`} fill className="object-cover rounded-md" />
+                        <Image src={preview} alt={`${label} preview`} fill className="object-contain rounded-md" />
                     </div>
                 )}
             </div>
@@ -87,6 +89,8 @@ export function SiteImagesTab() {
         const data = docSnap.data() as SiteImages;
         setInitialData(data);
         form.reset({
+          logo: data.logo,
+          favicon: data.favicon,
           hero: data.hero,
           essence: data.essence,
           about: data.about,
@@ -105,11 +109,11 @@ export function SiteImagesTab() {
     fetchSiteImages();
   }, [fetchSiteImages]);
 
-  const uploadImage = async (file: File | string): Promise<string> => {
+  const uploadImage = async (file: File | string, name: string): Promise<string> => {
       if (typeof file === 'string') return file; // It's already a URL
       if (!file) return '';
 
-      const storageRef = ref(storage, `site/${Date.now()}_${file.name}`);
+      const storageRef = ref(storage, `site/${name}_${Date.now()}_${file.name}`);
       const fileBuffer = await file.arrayBuffer();
       await uploadBytes(storageRef, fileBuffer);
       return getDownloadURL(storageRef);
@@ -118,19 +122,23 @@ export function SiteImagesTab() {
   const onSubmit = async (data: SiteImagesFormValues) => {
     setSaving(true);
     try {
-        const heroUrl = data.hero ? await uploadImage(data.hero) : initialData?.hero;
-        const essenceUrl = data.essence ? await uploadImage(data.essence) : initialData?.essence;
-        const aboutUrl = data.about ? await uploadImage(data.about) : initialData?.about;
+        const logoUrl = data.logo ? await uploadImage(data.logo, 'logo') : initialData?.logo;
+        const faviconUrl = data.favicon ? await uploadImage(data.favicon, 'favicon') : initialData?.favicon;
+        const heroUrl = data.hero ? await uploadImage(data.hero, 'hero') : initialData?.hero;
+        const essenceUrl = data.essence ? await uploadImage(data.essence, 'essence') : initialData?.essence;
+        const aboutUrl = data.about ? await uploadImage(data.about, 'about') : initialData?.about;
 
         // For portfolio, we need to handle a mix of existing URLs and new files
         let portfolioUrls: string[] = [];
         if(data.portfolio && data.portfolio.length > 0) {
-            portfolioUrls = await Promise.all(data.portfolio.map(img => uploadImage(img)));
+            portfolioUrls = await Promise.all(data.portfolio.map((img, i) => uploadImage(img, `portfolio_${i}`)));
         } else {
             portfolioUrls = initialData?.portfolio || [];
         }
 
         const siteData: SiteImages = {
+            logo: logoUrl || '',
+            favicon: faviconUrl || '',
             hero: heroUrl || '',
             essence: essenceUrl || '',
             about: aboutUrl || '',
@@ -140,6 +148,7 @@ export function SiteImagesTab() {
         await setDoc(doc(db, "siteConfig", "images"), siteData);
         toast({ title: "Éxito", description: "Las imágenes del sitio han sido actualizadas." });
         fetchSiteImages(); // Refresh data
+        window.location.reload();
     } catch (error) {
         console.error("Error saving site images:", error);
         toast({ title: "Error", description: "No se pudieron guardar los cambios.", variant: "destructive" });
@@ -162,6 +171,8 @@ export function SiteImagesTab() {
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <ImageUploadField name="logo" label="Logo del Sitio" setValue={setValue} currentImageUrl={initialData?.logo || null} />
+            <ImageUploadField name="favicon" label="Favicon del Sitio" setValue={setValue} currentImageUrl={initialData?.favicon || null} />
             <ImageUploadField name="hero" label="Imagen Hero (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.hero || null} />
             <ImageUploadField name="essence" label="Imagen 'Nuestra Esencia' (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.essence || null} />
             <ImageUploadField name="about" label="Imagen 'Nosotros'" setValue={setValue} currentImageUrl={initialData?.about || null} />
