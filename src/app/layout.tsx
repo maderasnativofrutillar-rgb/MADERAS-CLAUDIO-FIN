@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { Providers } from '@/components/providers';
+import { ClientProviders } from '@/components/providers';
 import { SiteHeader } from '@/components/header';
 import { SiteFooter } from '@/components/footer';
-import { Toaster } from "@/components/ui/toaster"
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { SiteImages } from '@/lib/types';
@@ -41,22 +40,19 @@ export default async function RootLayout({
   
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        {siteImages.favicon && <link rel="icon" href={siteImages.favicon} sizes="any" />}
-      </head>
+      <head>{siteImages.favicon && <link rel="icon" href={siteImages.favicon} sizes="any" />}</head>
       <body
         className={cn(
           'min-h-screen bg-background font-body antialiased'
         )}
       >
-        <Providers>
+        <ClientProviders>
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader logo={siteImages.logo} />
             <main className="flex-1">{children}</main>
             <SiteFooter />
           </div>
-          <Toaster />
-        </Providers>
+        </ClientProviders>
       </body>
     </html>
   );

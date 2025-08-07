@@ -2,7 +2,13 @@
 
 import { type ReactNode } from 'react';
 import { CartProvider } from '@/context/cart-context';
+import { Toaster } from './ui/toaster';
 
-export function Providers({ children }: { children: ReactNode }) {
-  return <CartProvider>{children}</CartProvider>;
+export function ClientProviders({ children }: { children: ReactNode }) {
+  return (
+    <CartProvider>
+      {children}
+      <Toaster />
+    </CartProvider>
+  );
 }
