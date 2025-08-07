@@ -13,6 +13,7 @@ export interface Product {
     // New fields for wholesale and offers
     wholesaleEnabled?: boolean;
     wholesaleMinQuantity?: number;
+    wholesalePrice?: number; // Added wholesale price
     offerPercentage?: number;
   }
   

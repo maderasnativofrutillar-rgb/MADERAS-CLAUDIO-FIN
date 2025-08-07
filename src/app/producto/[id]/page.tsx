@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, MouseEvent } from 'react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -55,6 +55,17 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isZooming, setIsZooming] = useState(false);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.pageX - left) / width) * 100;
+    const y = ((e.pageY - top) / height) * 100;
+    setMousePosition({ x, y });
+  };
+
 
   useEffect(() => {
     if (!id) return;
@@ -121,7 +132,12 @@ export default function ProductDetailPage() {
     <div className="container mx-auto px-4 py-12 md:py-16">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div>
-          <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg mb-4">
+          <div 
+            className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg mb-4 cursor-zoom-in"
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setIsZooming(true)}
+            onMouseLeave={() => setIsZooming(false)}
+            >
              {hasOffer && (
                 <Badge className='absolute top-3 left-3 z-10 bg-orange-500 text-white shadow-lg text-sm py-1 px-3'>
                     OFERTA {product.offerPercentage}%
@@ -131,10 +147,13 @@ export default function ProductDetailPage() {
               src={selectedImage || product.image}
               alt={product.name}
               fill
-              className="object-cover transition-opacity duration-300"
+              className="object-contain transition-transform duration-300 ease-in-out"
+              style={{
+                transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
+                transform: isZooming ? 'scale(2)' : 'scale(1)',
+              }}
               sizes="(max-width: 768px) 100vw, 50vw"
               data-ai-hint={product.dataAiHint}
-              unoptimized
             />
           </div>
           {galleryImages.length > 1 && (
@@ -147,7 +166,6 @@ export default function ProductDetailPage() {
                             fill
                             className="object-cover"
                             sizes="100px"
-                            unoptimized
                         />
                     </button>
                 ))}
@@ -170,7 +188,7 @@ export default function ProductDetailPage() {
                 <ChevronsRight className="h-4 w-4" />
                 <AlertTitle className='font-headline'>¡Disponible por mayor!</AlertTitle>
                 <AlertDescription>
-                    Este producto tiene un precio especial si compras desde {product.wholesaleMinQuantity} unidades. Contáctanos para más información.
+                    Este producto tiene un precio especial por compras sobre {product.wholesaleMinQuantity} unidades. Contáctanos para más información.
                 </AlertDescription>
             </Alert>
           )}

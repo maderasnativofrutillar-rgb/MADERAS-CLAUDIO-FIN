@@ -29,6 +29,7 @@ const productFormSchema = z.object({
     offerPercentage: z.coerce.number().min(0, "El descuento no puede ser negativo.").max(100, "El descuento no puede ser mayor a 100%.").optional(),
     wholesaleEnabled: z.boolean().default(false),
     wholesaleMinQuantity: z.coerce.number().optional(),
+    wholesalePrice: z.coerce.number().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -69,6 +70,7 @@ export function ProductForm({ product }: ProductFormProps) {
             offerPercentage: product?.offerPercentage || 0,
             wholesaleEnabled: product?.wholesaleEnabled || false,
             wholesaleMinQuantity: product?.wholesaleMinQuantity || 3,
+            wholesalePrice: product?.wholesalePrice || 0,
         },
     });
     
@@ -163,6 +165,7 @@ export function ProductForm({ product }: ProductFormProps) {
                 offerPercentage: data.offerPercentage || 0,
                 wholesaleEnabled: data.wholesaleEnabled || false,
                 wholesaleMinQuantity: data.wholesaleMinQuantity || 3,
+                wholesalePrice: data.wholesalePrice || 0,
             };
 
             if (product) {
@@ -174,6 +177,7 @@ export function ProductForm({ product }: ProductFormProps) {
             }
             
             router.push('/admin/dashboard');
+            router.refresh();
 
         } catch (error) {
             console.error("Error saving product: ", error);
@@ -226,28 +230,41 @@ export function ProductForm({ product }: ProductFormProps) {
                         )}
                     />
                     {wholesaleEnabled && (
-                        <FormField
-                            control={form.control}
-                            name="wholesaleMinQuantity"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Cantidad mínima por mayor</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value || 3)}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona una cantidad" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    <SelectItem value="3">Desde 3 unidades</SelectItem>
-                                    <SelectItem value="5">Desde 5 unidades</SelectItem>
-                                    <SelectItem value="9">Desde 9 unidades</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className='grid md:grid-cols-2 gap-6'>
+                            <FormField
+                                control={form.control}
+                                name="wholesaleMinQuantity"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Cantidad mínima</FormLabel>
+                                    <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value || 3)}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecciona una cantidad" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        <SelectItem value="3">Desde 3 unidades</SelectItem>
+                                        <SelectItem value="5">Desde 5 unidades</SelectItem>
+                                        <SelectItem value="9">Desde 9 unidades</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="wholesalePrice"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Precio por mayor</FormLabel>
+                                    <FormControl><Input type="number" placeholder="Precio por unidad" {...field} /></FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                     )}
                 </div>
 
