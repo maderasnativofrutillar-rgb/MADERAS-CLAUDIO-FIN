@@ -1,4 +1,3 @@
-import { Timestamp } from "firebase/firestore";
 
 export interface Product {
     id: string;
@@ -8,7 +7,8 @@ export interface Product {
     image: string; // Primary image
     images?: string[]; // Gallery images
     dataAiHint?: string;
-    createdAt?: Timestamp;
+    // Allow createdAt to be a string for client-side components
+    createdAt?: any;
   }
   
   export interface CartItem extends Product {

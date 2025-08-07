@@ -11,10 +11,17 @@ import { CarouselWithProgress } from "@/components/product-carousel-progress";
 
 async function getFeaturedProducts(): Promise<Product[]> {
   const productsCollection = collection(db, "products");
-  // Simplified query to avoid complex index requirements on first load
-  const q = query(productsCollection, limit(8));
+  const q = query(productsCollection, orderBy("createdAt", "desc"), limit(8));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  return querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return { 
+      id: doc.id,
+      ...data,
+      // Convert Firestore Timestamp to a serializable format (ISO string)
+      createdAt: data.createdAt?.toDate().toISOString(),
+    } as Product;
+  });
 }
 
 export default async function Home() {

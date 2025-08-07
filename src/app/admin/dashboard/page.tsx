@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -49,7 +48,15 @@ export default function DashboardPage() {
         const productsCollection = collection(db, "products");
         const q = query(productsCollection, orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
-        const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        const productsData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return { 
+            id: doc.id, 
+            ...data,
+            // Convert timestamp to string if it exists
+            createdAt: data.createdAt?.toDate().toISOString(),
+          } as Product;
+        });
         setProducts(productsData);
     } catch (error) {
         console.error("Error fetching products: ", error);
