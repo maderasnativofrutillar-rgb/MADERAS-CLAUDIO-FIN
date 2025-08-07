@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from './ui/badge';
+import { useState, useRef } from 'react';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +19,28 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const { addToCart } = useCart();
+  const [currentImage, setCurrentImage] = useState(product.image);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const allImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
+
+  const startImageRotation = () => {
+    if (allImages.length <= 1) return;
+    
+    let currentIndex = 0;
+    intervalRef.current = setInterval(() => {
+      currentIndex = (currentIndex + 1) % allImages.length;
+      setCurrentImage(allImages[currentIndex]);
+    }, 800); // Cambia de imagen cada 800ms
+  };
+
+  const stopImageRotation = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setCurrentImage(product.image); // Vuelve a la imagen principal
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
@@ -26,10 +50,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const discountedPrice = hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price;
 
   return (
-    <Card className={cn("flex flex-col group/card overflow-hidden", className)}>
+    <Card 
+      className={cn("flex flex-col group/card overflow-hidden", className)}
+      onMouseEnter={startImageRotation}
+      onMouseLeave={stopImageRotation}
+    >
         <Link href={`/producto/${product.id}`} className='flex flex-col flex-grow'>
             <CardHeader>
-                <div className="relative aspect-square w-full overflow-hidden rounded-lg">
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-secondary/30">
                     <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-2">
                         {hasOffer && (
                             <Badge className='bg-green-600 text-white hover:bg-green-700'>
@@ -43,13 +71,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
                         )}
                     </div>
                     <Image
-                        src={product.image}
+                        src={currentImage}
                         alt={product.name}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover/card:scale-105"
+                        className="object-contain transition-all duration-300"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         data-ai-hint={product.dataAiHint}
-                        unoptimized
                     />
                 </div>
             </CardHeader>
