@@ -6,29 +6,30 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, PackagePlus, Loader2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Package, Loader2 } from 'lucide-react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { collection, getDocs, deleteDoc, doc, orderBy, query, addDoc, serverTimestamp } from 'firebase/firestore';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { collection, getDocs, deleteDoc, doc, orderBy, query } from 'firebase/firestore';
 import { ref, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { ProductForm } from '@/components/product-form';
 import { Skeleton } from '@/components/ui/skeleton';
-import { products as seedProducts } from '@/lib/constants';
 
 // Helper to get image name from URL
 const getImageNameFromUrl = (url: string) => {
     try {
         const urlObj = new URL(url);
+        // The file name is in the path, after 'products%2F'. We need to decode it.
         const pathSegments = urlObj.pathname.split('/');
-        // The file name is usually in the format 'o/products%2F<actual_name>?alt=media...'
-        const encodedFileName = pathSegments.find(segment => segment.includes('%2F'));
-        if (!encodedFileName) return '';
-        const decodedName = decodeURIComponent(encodedFileName).split('/').pop();
-        return decodedName || '';
+        const encodedFileName = pathSegments.pop()?.split('?')[0] ?? '';
+        if (encodedFileName.includes('products%2F')) {
+             return decodeURIComponent(encodedFileName.split('products%2F')[1]);
+        }
+        // Fallback for different URL structures if needed, though the above should be robust.
+        return decodeURIComponent(encodedFileName);
     } catch (e) {
         console.error("Could not parse URL to get image name", url, e);
         return '';
@@ -39,7 +40,6 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [seeding, setSeeding] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
@@ -81,9 +81,11 @@ export default function DashboardPage() {
         for (const imageUrl of imagesToDelete) {
             try {
                 if (imageUrl && imageUrl.includes('firebasestorage')) {
-                    // This is a more robust way to get the ref from a URL
-                    const imageRef = ref(storage, imageUrl);
-                    await deleteObject(imageRef);
+                    const imageName = getImageNameFromUrl(imageUrl);
+                    if (imageName) {
+                        const imageRef = ref(storage, `products/${imageName}`);
+                        await deleteObject(imageRef);
+                    }
                 }
             } catch (storageError) {
                  // Log if a specific image fails, but don't block other deletions
@@ -113,28 +115,6 @@ export default function DashboardPage() {
     await fetchProducts();
     setIsDialogOpen(false);
     setEditingProduct(null);
-  };
-
-  const seedDatabase = async () => {
-    setSeeding(true);
-    toast({ title: 'Iniciando carga', description: `Se añadirán ${seedProducts.length} productos a la base de datos.` });
-    try {
-        for (const product of seedProducts) {
-            // We remove the id because Firestore will generate one
-            const { id, ...productData } = product; 
-            await addDoc(collection(db, "products"), {
-                ...productData,
-                createdAt: serverTimestamp(),
-            });
-        }
-        toast({ title: 'Carga completada', description: 'Los productos de ejemplo se han añadido correctamente.' });
-        await fetchProducts();
-    } catch (error) {
-        console.error("Error seeding database: ", error);
-        toast({ title: 'Error en la carga', description: 'No se pudieron añadir los productos de ejemplo.', variant: 'destructive' });
-    } finally {
-        setSeeding(false);
-    }
   };
 
   return (
@@ -211,18 +191,13 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                <h3 className="font-headline text-xl font-semibold">Tu tienda aún no tiene productos</h3>
-                <p className="text-muted-foreground mt-2 mb-4">Puedes añadir tu primer producto o cargar datos de ejemplo para empezar.</p>
-                <div className="flex justify-center gap-4">
-                     <Button onClick={handleAdd}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Añadir mi primer producto
-                    </Button>
-                    <Button variant="secondary" onClick={seedDatabase} disabled={seeding}>
-                        {seeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PackagePlus className="mr-2 h-4 w-4" />}
-                        {seeding ? 'Cargando...' : 'Cargar productos de ejemplo'}
-                    </Button>
-                </div>
+                <Package className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="font-headline text-xl font-semibold mt-4">Tu tienda aún no tiene productos</h3>
+                <p className="text-muted-foreground mt-2 mb-4">¡Comienza a construir tu catálogo! Añade tu primer producto para que tus clientes puedan verlo.</p>
+                <Button onClick={handleAdd}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Añadir mi primer producto
+                </Button>
             </div>
           )}
         </CardContent>
@@ -246,5 +221,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
