@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { TreePine, User, Menu, LogOut, Mail, Phone } from "lucide-react";
+import { TreePine, User, Menu, LogOut, Mail, Phone, ShieldCheck, UserCog } from "lucide-react";
 import { MainNav } from "./main-nav";
 import { CartSheet } from "./cart-sheet";
 import { AnnouncementBar } from "./announcement-bar";
@@ -35,16 +35,26 @@ interface SiteHeaderProps {
   logo?: string;
 }
 
+interface AppUser extends FirebaseUser {
+    role?: string;
+}
+
 export function SiteHeader({ logo }: SiteHeaderProps) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   
   useEffect(() => {
     setIsClient(true);
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+            const idTokenResult = await currentUser.getIdTokenResult();
+            const role = idTokenResult.claims.role as string || 'supervisor';
+            setUser({ ...currentUser, role });
+        } else {
+            setUser(null);
+        }
     });
     return () => unsubscribe();
   }, []);
@@ -132,8 +142,11 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">Supervisor</p>
-                        <p className="text-xs leading-none text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            {user.role === 'admin' ? <UserCog className="h-4 w-4 text-primary" /> : <ShieldCheck className="h-4 w-4 text-primary" />}
+                            <p className="text-sm font-medium leading-none capitalize">{user.role || 'Supervisor'}</p>
+                        </div>
+                        <p className="text-xs leading-none text-muted-foreground pl-6">
                         {user.email}
                         </p>
                     </div>
