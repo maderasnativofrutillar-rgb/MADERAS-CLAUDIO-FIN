@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -25,6 +26,7 @@ const MAX_IMAGES = 5;
 
 const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
+    summary: z.string().min(10, "El resumen debe tener al menos 10 caracteres.").max(150, "El resumen no puede tener más de 150 caracteres."),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
     offerPercentage: z.coerce.number().min(0, "El descuento no puede ser negativo.").max(100, "El descuento no puede ser mayor a 100%.").optional().default(0),
@@ -68,6 +70,7 @@ export function ProductForm({ product }: ProductFormProps) {
         resolver: zodResolver(productFormSchema),
         defaultValues: {
             name: product?.name || "",
+            summary: product?.summary || "",
             description: product?.description || "",
             price: product?.price || 0,
             offerPercentage: product?.offerPercentage || 0,
@@ -161,6 +164,7 @@ export function ProductForm({ product }: ProductFormProps) {
 
             const productData: Omit<Product, 'id' | 'createdAt'> = {
                 name: data.name,
+                summary: data.summary,
                 description: data.description,
                 price: data.price,
                 image: finalImageUrls[0],
@@ -202,8 +206,15 @@ export function ProductForm({ product }: ProductFormProps) {
                         <FormField control={form.control} name="name" render={({ field }) => (
                             <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
+                        <FormField control={form.control} name="summary" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Resumen del Producto</FormLabel>
+                                <FormControl><Textarea {...field} rows={3} maxLength={150} placeholder="Un resumen corto y atractivo que aparecerá siempre visible en la página del producto." /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
                         <FormField control={form.control} name="description" render={({ field }) => (
-                            <FormItem><FormLabel>Descripción</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Descripción Completa</FormLabel><FormControl><Textarea {...field} rows={5} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </CardContent>
                 </Card>
