@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
+import { CarouselWithProgress } from '@/components/product-carousel-progress';
 
 async function getProduct(id: string): Promise<Product | null> {
     const docRef = doc(db, "products", id);
@@ -51,7 +52,7 @@ async function getRelatedProducts(currentProductId: string): Promise<Product[]> 
     return allProducts
         .filter(p => p.id !== currentProductId)
         .sort(() => 0.5 - Math.random())
-        .slice(0, 4);
+        .slice(0, 8); // Return up to 8 for the carousel
 }
 
 export default function ProductDetailPage() {
@@ -166,7 +167,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const basePrice = getPriceForQuantity(product, quantity);
+  const basePrice = getPriceForQuantity(product, 1);
   const totalPrice = basePrice * quantity;
   const hasOffer = product.offerPercentage && product.offerPercentage > 0;
   const hasWholesale = product.wholesalePrice3 || product.wholesalePrice6 || product.wholesalePrice9;
@@ -320,10 +321,8 @@ export default function ProductDetailPage() {
       {relatedProducts.length > 0 && (
         <div className="mt-24">
             <h2 className="text-2xl md:text-3xl font-bold font-headline text-center mb-8">También te podría interesar</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 mt-8">
-                {relatedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
-                ))}
+            <div className="mt-8">
+                <CarouselWithProgress products={relatedProducts} />
             </div>
         </div>
       )}
