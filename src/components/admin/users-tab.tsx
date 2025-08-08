@@ -4,10 +4,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
-import { clientConfig } from '@/config/client';
+import { firebaseConfig } from '@/lib/firebase';
 
 
-const FIREBASE_CONSOLE_URL = `https://console.firebase.google.com/project/${clientConfig.projectId}/authentication/users`;
+const FIREBASE_CONSOLE_URL = `https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/users`;
 
 export function UsersTab() {
   return (
