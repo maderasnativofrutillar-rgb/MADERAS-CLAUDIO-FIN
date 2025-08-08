@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { navLinks } from "./main-nav";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -30,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { doc, getDoc } from "firebase/firestore";
 
 interface SiteHeaderProps {
   logo?: string;
@@ -49,8 +50,12 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
     setIsClient(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
-            const idTokenResult = await currentUser.getIdTokenResult();
-            const role = idTokenResult.claims.role as string || 'supervisor';
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            let role = null;
+            if (userDocSnap.exists()) {
+                role = userDocSnap.data().role || null;
+            }
             setUser({ ...currentUser, role });
         } else {
             setUser(null);
