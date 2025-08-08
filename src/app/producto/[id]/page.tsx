@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -6,7 +7,7 @@ import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
-import { ShoppingCart, ChevronsRight } from 'lucide-react';
+import { ShoppingCart, ChevronsRight, Truck, Clock, Minus, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
 import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore";
@@ -14,6 +15,7 @@ import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 async function getProduct(id: string): Promise<Product | null> {
     const docRef = doc(db, "products", id);
@@ -33,6 +35,7 @@ async function getProduct(id: string): Promise<Product | null> {
 
 async function getRelatedProducts(currentProductId: string): Promise<Product[]> {
     const productsRef = collection(db, "products");
+    // A simple query to get other products. For a real app, this could be based on category.
     const q = query(productsRef, where("id", "!=", currentProductId), limit(4));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => {
@@ -55,6 +58,7 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
@@ -72,6 +76,7 @@ export default function ProductDetailPage() {
 
     const fetchProductData = async () => {
         setLoading(true);
+        setQuantity(1); // Reset quantity on product change
         const productData = await getProduct(id);
         setProduct(productData);
         if (productData) {
@@ -84,6 +89,12 @@ export default function ProductDetailPage() {
 
     fetchProductData();
   }, [id]);
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart(product, quantity);
+    }
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
@@ -182,7 +193,6 @@ export default function ProductDetailPage() {
         </div>
         <div className="flex flex-col justify-center space-y-6">
           <h1 className="font-headline text-3xl md:text-4xl font-bold">{product.name}</h1>
-          <p className="text-muted-foreground text-lg whitespace-pre-wrap">{product.description}</p>
           
           <div className="flex items-baseline gap-4">
             <p className={`text-3xl font-bold ${hasOffer ? 'text-green-600' : 'text-primary'}`}>{formatPrice(discountedPrice)}</p>
@@ -190,7 +200,26 @@ export default function ProductDetailPage() {
                  <p className="text-xl font-medium text-muted-foreground line-through">{formatPrice(product.price)}</p>
             )}
           </div>
+
+          <div className='space-y-4'>
+            <FormLabel>Cantidad</FormLabel>
+            <div className="flex items-center border rounded-md w-fit">
+              <Button variant="ghost" size="icon" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="w-10 text-center font-medium">{quantity}</span>
+              <Button variant="ghost" size="icon" onClick={() => setQuantity(q => q + 1)}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           
+          <Button onClick={handleAddToCart} size="lg" className="group/button relative h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">
+            <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300">
+                <ShoppingCart className="h-6 w-6 mr-2" /> Añadir al Carrito
+            </span>
+          </Button>
+
           {hasWholesale && (
             <Alert>
                 <ChevronsRight className="h-4 w-4" />
@@ -201,14 +230,33 @@ export default function ProductDetailPage() {
             </Alert>
           )}
 
-          <div className="flex items-center gap-4">
-             <Button onClick={() => addToCart(product)} size="lg" className="group/button relative w-48 h-12 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground text-base">
-                <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover/button:-translate-y-full">Agregar al Carrito</span>
-                <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 translate-y-full group-hover/button:translate-y-0">
-                    <ShoppingCart className="h-6 w-6" />
-                </span>
-            </Button>
-          </div>
+           <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="description">
+                <AccordionTrigger>Descripción</AccordionTrigger>
+                <AccordionContent>
+                  <p className="text-muted-foreground text-base whitespace-pre-wrap">{product.description}</p>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="shipping">
+                <AccordionTrigger>Información de Envío</AccordionTrigger>
+                <AccordionContent className='space-y-4'>
+                    <div className="flex items-start gap-4">
+                        <Truck className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                        <div>
+                            <h4 className='font-semibold'>Envíos a todo Chile</h4>
+                            <p className="text-muted-foreground">Realizamos envíos a todo el territorio nacional a través de empresas de transporte externas.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-4">
+                        <Clock className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                        <div>
+                            <h4 className='font-semibold'>Tiempos de Entrega</h4>
+                            <p className="text-muted-foreground">El tiempo de entrega puede variar dependiendo de la zona de envío y la disponibilidad de la empresa de delivery. Recibirás un número de seguimiento para monitorear tu pedido.</p>
+                        </div>
+                    </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
         </div>
       </div>
 
