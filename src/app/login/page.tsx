@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -55,8 +56,8 @@ export default function LoginPage() {
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Acceso Admin</CardTitle>
-          <CardDescription>Ingresa tus credenciales para administrar la tienda.</CardDescription>
+          <CardTitle className="font-headline text-2xl">Acceso Usuarios VIP</CardTitle>
+          <CardDescription>Ingresa tus credenciales VIP</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
