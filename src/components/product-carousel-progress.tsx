@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -48,7 +49,7 @@ export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
         <CarouselContent>
           {products.map((product) => (
             <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4">
-              <div className="p-1">
+              <div className="p-1 h-full">
                 <ProductCard product={product} />
               </div>
             </CarouselItem>
@@ -56,7 +57,10 @@ export function CarouselWithProgress({ products }: CarouselWithProgressProps) {
         </CarouselContent>
         <div className="flex items-center justify-center gap-4 mt-8">
             <CarouselPrevious className="relative -left-0 top-0 translate-y-0" />
-            <Progress value={(current / count) * 100} className="w-1/3" />
+            <div className="flex-1 max-w-xs flex items-center gap-2">
+                <Progress value={(current / count) * 100} className="flex-1" />
+                <span className="text-sm font-medium text-muted-foreground">{current} / {count}</span>
+            </div>
             <CarouselNext className="relative -right-0 top-0 translate-y-0" />
         </div>
     </Carousel>

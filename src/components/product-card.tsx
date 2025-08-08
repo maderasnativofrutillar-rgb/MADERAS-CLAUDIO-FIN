@@ -52,7 +52,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   return (
     <Card 
-      className={cn("flex flex-col group/card overflow-hidden", className)}
+      className={cn("flex flex-col group/card overflow-hidden h-full", className)}
       onMouseEnter={startImageRotation}
       onMouseLeave={stopImageRotation}
     >
@@ -92,7 +92,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{product.description}</p>
             </CardContent>
         </Link>
-      <CardFooter className="flex justify-between items-center">
+      <CardFooter className="flex justify-between items-center mt-auto">
         <div className='flex flex-col items-start'>
             {hasOffer && (
                 <p className="text-sm text-muted-foreground line-through">{formatPrice(product.price)}</p>
