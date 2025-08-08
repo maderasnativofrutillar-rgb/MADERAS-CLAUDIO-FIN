@@ -10,7 +10,7 @@ import { useCart } from '@/context/cart-context';
 import { ShoppingCart, ChevronsRight, Truck, Clock, Minus, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product-card';
-import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -36,9 +36,9 @@ async function getProduct(id: string): Promise<Product | null> {
 
 async function getRelatedProducts(currentProductId: string): Promise<Product[]> {
     const productsRef = collection(db, "products");
-    const q = query(productsRef, where("id", "!=", currentProductId), limit(4));
+    const q = query(productsRef, limit(8)); // Fetch more to have better random results
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
+    const allProducts = querySnapshot.docs.map(doc => {
        const data = doc.data();
         return { 
             id: doc.id, 
@@ -46,6 +46,12 @@ async function getRelatedProducts(currentProductId: string): Promise<Product[]> 
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
         } as Product;
     });
+
+    // Filter out the current product and shuffle the rest
+    return allProducts
+        .filter(p => p.id !== currentProductId)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 4);
 }
 
 export default function ProductDetailPage() {
@@ -59,6 +65,8 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [isZooming, setIsZooming] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -67,11 +75,13 @@ export default function ProductDetailPage() {
         setLoading(true);
         setQuantity(1); // Reset quantity on product change
         const productData = await getProduct(id);
-        setProduct(productData);
         if (productData) {
+            setProduct(productData);
             setSelectedImage(productData.image);
             const relatedData = await getRelatedProducts(id);
             setRelatedProducts(relatedData);
+        } else {
+            setProduct(null);
         }
         setLoading(false);
     };
@@ -91,6 +101,14 @@ export default function ProductDetailPage() {
           router.push('/checkout');
       }
   };
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomPosition({ x, y });
+  };
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
@@ -115,12 +133,15 @@ export default function ProductDetailPage() {
   if (loading) {
       return (
         <div className="container mx-auto px-4 py-12 md:py-16">
-            <div className="grid md:grid-cols-[1fr_2fr] lg:grid-cols-[1fr_3fr] gap-8">
-                <div className="flex flex-col gap-4">
-                    {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-square w-full rounded-lg" />)}
+            <div className="grid md:grid-cols-[1fr_2fr] lg:grid-cols-[auto_1fr_1fr] gap-8">
+                 {/* Thumbnails */}
+                <div className="hidden lg:flex flex-col gap-2">
+                    {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-20 rounded-md" />)}
                 </div>
+                {/* Main Image */}
                 <Skeleton className="aspect-square w-full rounded-lg" />
-                 <div className="flex flex-col justify-center space-y-6 md:col-span-2 lg:col-auto">
+                {/* Details */}
+                 <div className="flex flex-col justify-center space-y-6">
                     <Skeleton className="h-10 w-3/4" />
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-full" />
@@ -172,7 +193,12 @@ export default function ProductDetailPage() {
         )}
 
         {/* Main Image */}
-        <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg group">
+        <div 
+          className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg group"
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() => setIsZooming(true)}
+          onMouseLeave={() => setIsZooming(false)}
+        >
             <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
                 {hasOffer && (
                     <Badge className='bg-green-600 text-white shadow-lg text-sm py-1 px-3'>
@@ -189,9 +215,18 @@ export default function ProductDetailPage() {
               src={selectedImage || product.image}
               alt={product.name}
               fill
-              className="object-contain transition-opacity duration-300 ease-in-out"
+              className="object-contain transition-opacity duration-300 ease-in-out md:group-hover:opacity-0"
               sizes="(max-width: 768px) 100vw, 50vw"
               data-ai-hint={product.dataAiHint}
+            />
+            {/* Zoom lens for desktop */}
+            <div 
+                className={`hidden md:block absolute inset-0 pointer-events-none bg-no-repeat bg-contain transition-opacity duration-300 ${isZooming ? 'opacity-100' : 'opacity-0'}`}
+                style={{
+                    backgroundImage: `url(${selectedImage || product.image})`,
+                    backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                    backgroundSize: '200%',
+                }}
             />
             {galleryImages.length > 1 && (
                 <>
@@ -282,14 +317,16 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-       <div className="mt-24">
-        <h2 className="text-2xl md:text-3xl font-bold font-headline text-center mb-8">También te podría interesar</h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 mt-8">
-            {relatedProducts.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+      {relatedProducts.length > 0 && (
+        <div className="mt-24">
+            <h2 className="text-2xl md:text-3xl font-bold font-headline text-center mb-8">También te podría interesar</h2>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4 mt-8">
+                {relatedProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+                ))}
+            </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
