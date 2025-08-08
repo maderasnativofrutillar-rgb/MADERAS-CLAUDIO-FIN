@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Award, Box, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -98,7 +98,7 @@ function EmpresasPageClient({ portfolioImages }: { portfolioImages: {src: string
         </div>
       </section>
 
-       <section className="w-full py-12 md:py-24 bg-primary/5">
+       <section className="w-full py-12 md:py-24">
         <div className="container px-4 md:px-6">
           <h2 className="text-center font-headline text-3xl font-bold tracking-tighter sm:text-4xl mb-12 animate-fade-in-up">
             Nuestro Portafolio
@@ -139,6 +139,7 @@ function EmpresasPageClient({ portfolioImages }: { portfolioImages: {src: string
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-4xl w-full p-2 bg-transparent border-none shadow-none">
+           <DialogTitle className="sr-only">Galería de Portafolio</DialogTitle>
            <Carousel
             opts={{
               startIndex: selectedImageIndex,
