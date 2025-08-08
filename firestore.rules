@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -15,7 +16,14 @@ service cloud.firestore {
       allow create, update, delete: if request.auth != null;
     }
 
+    // Permite a los usuarios leer su propio documento para verificar su rol
+    match /users/{userId} {
+      allow get: if request.auth != null && request.auth.uid == userId;
+      allow list, create, update, delete: if request.auth != null; // Se puede restringir más si es necesario
+    }
+
     // Regla de respaldo: denegar todo lo demás por defecto.
+    // Esta regla se debe eliminar o ajustar si se añaden más colecciones.
     match /{document=**} {
       allow read, write: if false;
     }
