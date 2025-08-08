@@ -11,14 +11,25 @@ import { ProductsTab } from '@/components/admin/products-tab';
 import { SiteImagesTab } from '@/components/admin/site-images-tab';
 import { UsersTab } from '@/components/admin/users-tab';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UsageTab } from '@/components/admin/usage-tab';
+import { doc, getDoc } from 'firebase/firestore';
 
 
 async function getUserRole(user: User): Promise<string | null> {
-    const idTokenResult = await user.getIdTokenResult();
-    return idTokenResult.claims.role as string || null; 
+    if (!user) return null;
+    try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+            return userDocSnap.data().role || null;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error getting user role from Firestore:", error);
+        return null;
+    }
 }
 
 
