@@ -16,9 +16,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UsageTab } from '@/components/admin/usage-tab';
 
 
-async function getUserRole(user: User): Promise<string> {
+async function getUserRole(user: User): Promise<string | null> {
     const idTokenResult = await user.getIdTokenResult();
-    return idTokenResult.claims.role as string || 'supervisor'; 
+    return idTokenResult.claims.role as string || null; 
 }
 
 
