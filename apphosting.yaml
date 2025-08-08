@@ -4,7 +4,8 @@
 # By leaving this file minimal, Firebase will use its recommended default settings.
 # You can uncomment and modify the settings below to customize your backend's behavior.
 
-# runConfig:
+runConfig:
+  runtime: nodejs20
 #   minInstances: 0
 #   maxInstances: 2
 #   cpu: 1
