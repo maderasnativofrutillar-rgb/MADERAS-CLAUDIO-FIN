@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PlusCircle, Image as ImageIcon } from 'lucide-react';
+import { PlusCircle, Image as ImageIcon, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProductsTab } from '@/components/admin/products-tab';
 import { SiteImagesTab } from '@/components/admin/site-images-tab';
+import { UsersTab } from '@/components/admin/users-tab';
 
 
 export default function DashboardPage() {
@@ -27,6 +28,10 @@ export default function DashboardPage() {
               <TabsTrigger value="images">
                 <ImageIcon className="h-4 w-4 mr-2"/>
                 Imágenes del Sitio
+              </TabsTrigger>
+               <TabsTrigger value="users">
+                <Users className="h-4 w-4 mr-2"/>
+                Usuarios
               </TabsTrigger>
             </TabsList>
              <Button size="sm" className="gap-1" onClick={handleAdd}>
@@ -54,6 +59,17 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <SiteImagesTab />
+              </CardContent>
+            </Card>
+          </TabsContent>
+            <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline">Gestión de Usuarios</CardTitle>
+                <CardDescription>Añade, edita roles o elimina usuarios administradores desde la consola de Firebase.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UsersTab />
               </CardContent>
             </Card>
           </TabsContent>
