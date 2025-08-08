@@ -83,18 +83,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = (productId: string) => {
-    setCartItems((prevItems) => {
-        const itemToRemove = prevItems.find((item) => item.id === productId);
-        if (!itemToRemove) return prevItems;
-
-        toast({
-            title: "Producto eliminado",
-            description: `${itemToRemove.name} ha sido eliminado del carrito.`,
-            variant: "destructive"
-        });
-        
-        return prevItems.filter((item) => item.id !== productId);
-    });
+    const itemToRemove = cartItems.find((item) => item.id === productId);
+    if (itemToRemove) {
+      toast({
+        title: "Producto eliminado",
+        description: `${itemToRemove.name} ha sido eliminado del carrito.`,
+        variant: "destructive",
+      });
+    }
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId));
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
