@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PlusCircle, Image as ImageIcon, Users, ShieldCheck } from 'lucide-react';
+import { PlusCircle, Image as ImageIcon, Users, BarChart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProductsTab } from '@/components/admin/products-tab';
 import { SiteImagesTab } from '@/components/admin/site-images-tab';
@@ -13,6 +13,7 @@ import { UsersTab } from '@/components/admin/users-tab';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UsageTab } from '@/components/admin/usage-tab';
 
 
 async function getUserRole(user: User): Promise<string> {
@@ -75,6 +76,10 @@ export default function DashboardPage() {
                         <Users className="h-4 w-4 mr-2"/>
                         Usuarios
                     </TabsTrigger>
+                     <TabsTrigger value="usage">
+                        <BarChart className="h-4 w-4 mr-2"/>
+                        Uso de Firebase
+                    </TabsTrigger>
                 </>
               )}
             </TabsList>
@@ -117,6 +122,17 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <UsersTab />
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+                 <TabsContent value="usage">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Métricas de Uso de Firebase</CardTitle>
+                        <CardDescription>Monitorea el uso de los servicios de Firebase como Firestore, Storage y Hosting.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <UsageTab />
                     </CardContent>
                     </Card>
                 </TabsContent>
