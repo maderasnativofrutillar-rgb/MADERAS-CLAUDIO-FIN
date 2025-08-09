@@ -129,7 +129,7 @@ export default function CheckoutPage() {
 
         const result = await createFlowOrder(paymentData);
 
-        if (result.url && result.token) {
+        if ('url' in result && result.url && result.token) {
             // Redirect to Flow's payment page
             window.location.href = `${result.url}?token=${result.token}`;
         } else {
@@ -222,7 +222,7 @@ export default function CheckoutPage() {
                     </FormItem>
                   )}/>
                 </div>
-                <Button type="submit" size="lg" className="w-full" disabled={cartItems.length === 0 || shippingCost === 0 || isProcessing}>
+                <Button type="submit" size="lg" className="w-full" disabled={isProcessing || cartItems.length === 0 || shippingCost === 0}>
                     {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isProcessing ? 'Procesando...' : `Ir a Pagar ${formatPrice(finalTotal)}`}
                 </Button>

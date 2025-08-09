@@ -60,7 +60,7 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         email: paymentData.email,
         urlConfirmation: `${baseUrl}/api/flow/confirm`,
         urlReturn: `${baseUrl}/checkout/result`,
-        paymentMethod: "9" // All payment methods
+        paymentMethod: 9 // All payment methods
     };
 
     const signature = generateSignature(paramsForSignature);
@@ -68,7 +68,7 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     // The final parameters sent to Flow are the same ones used for the signature,
     // plus the signature itself in the 's' field.
     const finalParams = new URLSearchParams({
-        ...paramsForSignature,
+        ...Object.fromEntries(Object.entries(paramsForSignature).map(([key, value]) => [key, String(value)])),
         s: signature,
     });
 
