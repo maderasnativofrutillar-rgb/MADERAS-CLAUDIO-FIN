@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { collection, addDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { type Product } from '@/lib/types';
@@ -19,7 +19,7 @@ import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight } from
 import Image from 'next/image';
 import { Checkbox } from './ui/checkbox';
 import { categories } from '@/lib/constants';
-import { useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 const MAX_IMAGES = 5;
@@ -39,9 +39,23 @@ const productFormSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
-interface ProductFormProps {
-    product?: Product | null;
+async function getProduct(id: string): Promise<Product | null> {
+    const docRef = doc(db, "products", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        return { 
+            id: docSnap.id, 
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+        } as Product;
+    } else {
+        console.error("No such document!");
+        return null;
+    }
 }
+
 
 const getPathFromUrl = (url: string) => {
     try {
@@ -57,11 +71,15 @@ const getPathFromUrl = (url: string) => {
     }
 };
 
-export function ProductForm({ product }: ProductFormProps) {
+export function ProductForm() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const productId = searchParams.get('id');
+
+    const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
-    const router = useRouter();
-
+    
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
     const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
@@ -69,25 +87,45 @@ export function ProductForm({ product }: ProductFormProps) {
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
         defaultValues: {
-            name: product?.name || "",
-            summary: product?.summary || "",
-            description: product?.description || "",
-            price: product?.price || 0,
-            offerPercentage: product?.offerPercentage || 0,
-            wholesalePrice3: product?.wholesalePrice3 || 0,
-            wholesalePrice6: product?.wholesalePrice6 || 0,
-            wholesalePrice9: product?.wholesalePrice9 || 0,
-            categories: product?.categories || [],
-            customTag: product?.customTag || "",
+            name: "",
+            summary: "",
+            description: "",
+            price: 0,
+            offerPercentage: 0,
+            wholesalePrice3: 0,
+            wholesalePrice6: 0,
+            wholesalePrice9: 0,
+            categories: [],
+            customTag: "",
         },
     });
 
     useEffect(() => {
-        if (product) {
-            const existingImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
-            setImagePreviews(existingImages);
+        if (productId) {
+            setLoading(true);
+            getProduct(productId)
+                .then(productData => {
+                    if (productData) {
+                        setProduct(productData);
+                        form.reset({
+                            name: productData.name || "",
+                            summary: productData.summary || "",
+                            description: productData.description || "",
+                            price: productData.price || 0,
+                            offerPercentage: productData.offerPercentage || 0,
+                            wholesalePrice3: productData.wholesalePrice3 || 0,
+                            wholesalePrice6: productData.wholesalePrice6 || 0,
+                            wholesalePrice9: productData.wholesalePrice9 || 0,
+                            categories: productData.categories || [],
+                            customTag: productData.customTag || "",
+                        });
+                        const existingImages = [productData.image, ...(productData.images || [])].filter(Boolean) as string[];
+                        setImagePreviews(existingImages);
+                    }
+                })
+                .finally(() => setLoading(false));
         }
-    }, [product]);
+    }, [productId, form]);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         const totalImageCount = imagePreviews.length + newImageFiles.length + acceptedFiles.length;
@@ -275,9 +313,9 @@ export function ProductForm({ product }: ProductFormProps) {
                                                     checked={field.value?.includes(item)}
                                                     onCheckedChange={(checked) => {
                                                     return checked
-                                                        ? field.onChange([...field.value, item])
+                                                        ? field.onChange([...(field.value || []), item])
                                                         : field.onChange(
-                                                            field.value?.filter(
+                                                            (field.value || [])?.filter(
                                                             (value) => value !== item
                                                             )
                                                         )
