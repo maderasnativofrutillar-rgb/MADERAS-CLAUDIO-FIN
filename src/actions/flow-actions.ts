@@ -31,22 +31,26 @@ const generateSignature = (params: Record<string, any>): string => {
     const sortedKeys = Object.keys(params).sort();
     const toSign = sortedKeys.map(key => `${key}${params[key]}`).join('');
     
-    const hmac = crypto.createHmac('sha256', secretKey!);
+    if (!secretKey) {
+        throw new Error('Flow Secret Key no está configurada.');
+    }
+
+    const hmac = crypto.createHmac('sha256', secretKey);
     hmac.update(toSign);
     return hmac.digest('hex');
 };
 
 export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<FlowPaymentResponse | { message: string }> {
     if (!apiKey || !secretKey) {
-        throw new Error('Flow API credentials are not configured.');
+        throw new Error('Las credenciales de la API de Flow no están configuradas.');
     }
 
     const baseUrl = process.env.NODE_ENV === 'production' 
         ? 'https://maderasnativosur.com' // Replace with your actual production domain
         : 'http://localhost:9002'; // Or your local dev URL
 
-    const params = {
-        apiKey,
+    // Parameters for the signature MUST NOT include the apiKey itself.
+    const paramsForSignature = {
         commerceOrder: paymentData.commerceOrder,
         subject: `Pago por orden ${paymentData.commerceOrder}`,
         currency: 'CLP',
@@ -56,9 +60,16 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         urlReturn: `${baseUrl}/checkout/result`,
         paymentMethod: 9 // All payment methods
     };
-    
-    const signature = generateSignature(params);
-    const finalParams = new URLSearchParams({ ...params, s: signature, amount: String(params.amount) });
+
+    const signature = generateSignature(paramsForSignature);
+
+    // Parameters for the final request MUST include apiKey and the signature.
+    const finalParams = new URLSearchParams({
+        ...paramsForSignature,
+        apiKey: apiKey,
+        s: signature,
+        amount: String(paramsForSignature.amount) // Ensure amount is a string
+    });
 
     try {
         const response = await fetch(`${FLOW_API_URL}/payment/create`, {
@@ -78,9 +89,9 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
                 console.error("Flow API Error:", errorData);
                 throw new Error(`Error de Flow: ${errorData.message} (Código: ${errorData.code})`);
             } catch (e) {
-                // If parsing fails, it's likely a plain text error
+                // If parsing fails, it's likely a plain text error, including 401 Unauthorized
                  console.error("Flow API raw error response:", responseText);
-                 throw new Error(`Error inesperado del servidor de Flow. Status: ${response.status}`);
+                 throw new Error(`Error inesperado del servidor de Flow. Status: ${response.status}.`);
             }
         }
         
@@ -91,6 +102,7 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         const flowOrder = parsedResponse.get('flowOrder');
         
         if (!url || !token) {
+            console.error("Invalid response from Flow:", responseText);
             throw new Error('Respuesta inválida de Flow al crear el pago.');
         }
 
@@ -102,6 +114,6 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
 
     } catch (error) {
         console.error('Failed to create Flow order:', error);
-        return { message: error instanceof Error ? error.message : 'An unknown error occurred' };
+        return { message: error instanceof Error ? error.message : 'Ocurrió un error desconocido' };
     }
 }
