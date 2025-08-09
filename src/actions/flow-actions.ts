@@ -64,11 +64,12 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     const signature = generateSignature(paramsForSignature);
 
     // Parameters for the final request MUST include apiKey and the signature.
+    // The amount MUST be a string for the final request body.
     const finalParams = new URLSearchParams({
         ...paramsForSignature,
         apiKey: apiKey,
         s: signature,
-        amount: String(paramsForSignature.amount) // Ensure amount is a string
+        amount: String(paramsForSignature.amount) 
     });
 
     try {
