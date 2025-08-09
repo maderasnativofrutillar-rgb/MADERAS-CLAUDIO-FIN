@@ -45,9 +45,10 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         throw new Error('Las credenciales de la API de Flow no están configuradas.');
     }
 
-    const baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://maderasnativosur.com' // Replace with your actual production domain
-        : 'http://localhost:9002'; // Or your local dev URL
+    // Dynamically determine the base URL
+    const host = process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:9002';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
 
     // Parameters for the signature MUST NOT include the apiKey itself.
     const paramsForSignature = {
