@@ -23,11 +23,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { MiniProductCard } from '@/components/mini-product-card';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Product } from '@/lib/types';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { createFlowOrder } from '@/actions/flow-actions';
 
 const regions = {
   "sur-extremo": { name: "Zona Sur Extrema (Aysén, Magallanes)", price: 10000 },
@@ -57,6 +58,7 @@ export default function CheckoutPage() {
   const [discount, setDiscount] = useState(0);
   const [couponApplied, setCouponApplied] = useState(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -111,21 +113,39 @@ export default function CheckoutPage() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
   };
 
-  const onSubmit = (data: CheckoutFormValues) => {
-    console.log('Form data:', data, 'Shipping Cost:', shippingCost, 'Discount:', discount);
+  const onSubmit = async (data: CheckoutFormValues) => {
+    setIsProcessing(true);
     toast({
-        title: 'Procesando Pago...',
-        description: 'Serás redirigido en un momento.',
+        title: 'Preparando tu pago...',
+        description: 'Serás redirigido a Flow para completar la compra.',
     });
+    
+    try {
+        const paymentData = {
+            amount: finalTotal,
+            email: data.email,
+            commerceOrder: `NATIVO-SUR-${Date.now()}`
+        };
 
-    setTimeout(() => {
-        clearCart();
+        const result = await createFlowOrder(paymentData);
+
+        if (result.url && result.token) {
+            // Redirect to Flow's payment page
+            window.location.href = `${result.url}?token=${result.token}`;
+        } else {
+            throw new Error(result.message || 'Error desconocido al crear la orden de pago.');
+        }
+
+    } catch (error) {
+        console.error("Payment error:", error);
+        const errorMessage = error instanceof Error ? error.message : 'No se pudo conectar con la pasarela de pago.';
         toast({
-            title: '¡Pago Exitoso!',
-            description: 'Gracias por tu compra. Hemos recibido tu pedido.',
+            title: 'Error en el Pago',
+            description: errorMessage,
+            variant: 'destructive'
         });
-        router.push('/');
-    }, 2000);
+        setIsProcessing(false);
+    }
   };
 
   if (cartItems.length === 0 && !form.formState.isSubmitSuccessful) {
@@ -202,8 +222,9 @@ export default function CheckoutPage() {
                     </FormItem>
                   )}/>
                 </div>
-                <Button type="submit" size="lg" className="w-full" disabled={cartItems.length === 0 || shippingCost === 0}>
-                    Ir a Pagar {formatPrice(finalTotal)}
+                <Button type="submit" size="lg" className="w-full" disabled={cartItems.length === 0 || shippingCost === 0 || isProcessing}>
+                    {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isProcessing ? 'Procesando...' : `Ir a Pagar ${formatPrice(finalTotal)}`}
                 </Button>
               </form>
             </Form>
