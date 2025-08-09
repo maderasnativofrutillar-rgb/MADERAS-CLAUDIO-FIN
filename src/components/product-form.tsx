@@ -213,6 +213,7 @@ export function ProductForm() {
                 wholesalePrice9: data.wholesalePrice9 || 0,
                 categories: data.categories || [],
                 customTag: data.customTag || "",
+                dataAiHint: "" // Add this line
             };
 
             if (product) {

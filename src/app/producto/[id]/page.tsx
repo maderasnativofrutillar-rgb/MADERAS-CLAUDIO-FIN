@@ -2,14 +2,13 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState, MouseEvent } from 'react';
+import { useEffect, useState, MouseEvent, Suspense } from 'react';
 import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
 import { ShoppingCart, ChevronsRight, Truck, Clock, Minus, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { ProductCard } from '@/components/product-card';
 import { doc, getDoc, collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -55,7 +54,7 @@ async function getRelatedProducts(currentProductId: string): Promise<Product[]> 
         .slice(0, 8); // Return up to 8 for the carousel
 }
 
-export default function ProductDetailPage() {
+function ProductDetailContent() {
   const params = useParams();
   const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -132,27 +131,7 @@ export default function ProductDetailPage() {
   };
   
   if (loading) {
-      return (
-        <div className="container mx-auto px-4 py-12 md:py-16">
-            <div className="grid md:grid-cols-[1fr_2fr] lg:grid-cols-[auto_1fr_1fr] gap-8">
-                 {/* Thumbnails */}
-                <div className="hidden lg:flex flex-col gap-2">
-                    {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-20 rounded-md" />)}
-                </div>
-                {/* Main Image */}
-                <Skeleton className="aspect-square w-full rounded-lg" />
-                {/* Details */}
-                 <div className="flex flex-col justify-center space-y-6">
-                    <Skeleton className="h-10 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-12 w-32" />
-                    <Skeleton className="h-12 w-48" />
-                </div>
-            </div>
-        </div>
-      )
+      return <ProductDetailSkeleton />;
   }
 
   if (!product) {
@@ -328,4 +307,36 @@ export default function ProductDetailPage() {
       )}
     </div>
   );
+}
+
+function ProductDetailSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="grid md:grid-cols-[1fr_2fr] lg:grid-cols-[auto_1fr_1fr] gap-8">
+             {/* Thumbnails */}
+            <div className="hidden lg:flex flex-col gap-2">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-20 rounded-md" />)}
+            </div>
+            {/* Main Image */}
+            <Skeleton className="aspect-square w-full rounded-lg" />
+            {/* Details */}
+             <div className="flex flex-col justify-center space-y-6">
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-12 w-32" />
+                <Skeleton className="h-12 w-48" />
+            </div>
+        </div>
+    </div>
+  )
+}
+
+export default function ProductDetailPage() {
+  return (
+    <Suspense fallback={<ProductDetailSkeleton />}>
+        <ProductDetailContent />
+    </Suspense>
+  )
 }
