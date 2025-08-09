@@ -65,12 +65,15 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
 
     const signature = generateSignature(paramsForSignature);
 
-    // The final parameters sent to Flow are the same ones used for the signature,
-    // plus the signature itself in the 's' field.
-    const finalParams = new URLSearchParams({
-        ...Object.fromEntries(Object.entries(paramsForSignature).map(([key, value]) => [key, String(value)])),
-        s: signature,
+    // A new and safer way to build the final parameters
+    const finalParams = new URLSearchParams();
+    const sortedKeys = Object.keys(paramsForSignature).sort();
+
+    sortedKeys.forEach(key => {
+        finalParams.append(key, String((paramsForSignature as any)[key]));
     });
+
+    finalParams.append('s', signature);
 
     try {
         const response = await fetch(`${FLOW_API_URL}/payment/create`, {
