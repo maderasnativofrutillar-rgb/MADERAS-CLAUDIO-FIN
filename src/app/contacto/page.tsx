@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AtSign, MapPin, Phone } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'El nombre es requerido'),
@@ -19,6 +20,8 @@ const contactSchema = z.object({
 type ContactFormValues = z.infer<typeof contactSchema>;
 
 export default function ContactoPage() {
+  const { toast } = useToast();
+
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -27,6 +30,35 @@ export default function ContactoPage() {
       message: '',
     },
   });
+
+  const encode = (data: any) => {
+    return Object.keys(data)
+        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+        .join("&");
+  }
+
+  const onSubmit = (data: ContactFormValues) => {
+    fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: encode({ "form-name": "contact", ...data }),
+    })
+    .then(() => {
+      toast({
+        title: 'Mensaje Enviado',
+        description: 'Gracias por contactarnos. Te responderemos a la brevedad.',
+      });
+      form.reset();
+    })
+    .catch(error => {
+      toast({
+          title: 'Error al enviar',
+          description: 'Hubo un problema al enviar tu mensaje. Por favor, inténtalo de nuevo.',
+          variant: 'destructive',
+      });
+      console.error(error);
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-24">
@@ -44,9 +76,10 @@ export default function ContactoPage() {
                 name="contact"
                 method="POST"
                 data-netlify="true"
+                data-netlify-honeypot="bot-field"
+                onSubmit={form.handleSubmit(onSubmit)} 
                 className="space-y-6"
               >
-                {/* Este input oculto es crucial para el plugin de Next.js */}
                 <input type="hidden" name="form-name" value="contact" />
 
                 <FormField
@@ -123,7 +156,7 @@ export default function ContactoPage() {
                 <h2 className="font-headline text-2xl font-bold mb-4">Encuéntranos</h2>
                 <div className="aspect-video w-full">
                     <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3006.118485210217!2d-72.94314738843976!3d-41.47898517116773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x96183aadd843138b%3A0x194e43b67554972d!2sDiego%20Portales%20860%2C%20Puerto%20Montt%2C%20Los%20Lagos!5e0!3m2!1ses!2scl!4v1700000000000!5m2!1ses!2scl"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3006.118485210217!2d-72.94314738843976!3d-41.47898517116773!2m3!1f0!2f0!3f0!3m2!i1024!2i768!4f13.1!3m3!1m2!1s0x96183aadd843138b%3A0x194e43b67554972d!2sDiego%20Portales%20860%2C%20Puerto%20Montt%2C%20Los%20Lagos!5e0!3m2!1ses!2scl!4v1700000000000!5m2!1ses!2scl"
                         width="100%" 
                         height="100%" 
                         style={{border:0}}
