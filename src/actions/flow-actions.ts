@@ -20,7 +20,7 @@ interface FlowErrorResponse {
     message: string;
 }
 
-const FLOW_API_URL = 'https://api.flow.cl/api'; // Use production API
+const FLOW_API_URL = 'https://www.flow.cl/api'; // Use production API
 
 // Get credentials from environment variables
 const apiKey = process.env.FLOW_API_KEY;
