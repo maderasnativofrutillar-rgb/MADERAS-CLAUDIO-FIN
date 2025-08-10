@@ -20,7 +20,7 @@ interface FlowErrorResponse {
 }
 
 // URL de producción, ya está configurada correctamente.
-const FLOW_API_URL = 'https://www.flow.cl/api'; 
+const FLOW_API_URL = 'https://www.flow.cl/api';
 
 // Obtener las credenciales de las variables de entorno de Netlify
 const apiKey = process.env.FLOW_API_KEY;
@@ -46,11 +46,11 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     }
 
     // Determinar dinámicamente la URL base de tu sitio
-    const host = process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:3000'; // Corregí el puerto
+    const host = process.env.NEXT_PUBLIC_VERCEL_URL || 'localhost:3000';
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
-    
-    // Parámetros para la firma. TODOS los parámetros que se envían deben ser firmados.
+
+    // Parámetros para la firma. Se deben firmar todos los parámetros que se envían.
     const paramsForSignature = {
         apiKey: apiKey,
         commerceOrder: paymentData.commerceOrder,
@@ -67,15 +67,11 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
 
     // Construir el cuerpo de la solicitud para el POST
     const finalParams = new URLSearchParams();
-    finalParams.append('apiKey', apiKey);
-    finalParams.append('commerceOrder', paymentData.commerceOrder);
-    finalParams.append('subject', paramsForSignature.subject);
-    finalParams.append('currency', 'CLP');
-    finalParams.append('amount', String(paymentData.amount)); // Enviar como string
-    finalParams.append('email', paymentData.email);
-    finalParams.append('urlConfirmation', paramsForSignature.urlConfirmation);
-    finalParams.append('urlReturn', paramsForSignature.urlReturn);
-    finalParams.append('paymentMethod', '9'); // Enviar como string
+    // Añadir todos los parámetros firmados, y asegurarse de que los tipos de datos sean correctos para el body
+    Object.keys(paramsForSignature).sort().forEach(key => {
+      finalParams.append(key, String((paramsForSignature as any)[key]));
+    });
+    // Agregar la firma al final
     finalParams.append('s', signature);
 
     // --- LOGS DE DEPURACIÓN (MUY ÚTILES) ---
@@ -95,26 +91,20 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
             body: finalParams.toString(),
         });
         
-        const responseText = await response.text();
+        const responseData = await response.json(); // Parsea la respuesta como JSON
         
         if (!response.ok) {
-            try {
-                const errorData: FlowErrorResponse = JSON.parse(responseText);
-                console.error("Flow API JSON Error:", errorData);
-                throw new Error(`Error de Flow: ${errorData.message} (Código: ${errorData.code})`);
-            } catch (e) {
-                console.error("Flow API raw error response:", responseText);
-                throw new Error(`Error inesperado del servidor de Flow. Status: ${response.status}.`);
-            }
+            console.error("Flow API Error:", responseData);
+            throw new Error(`Error de Flow: ${responseData.message} (Código: ${responseData.code})`);
         }
         
-        const parsedResponse = new URLSearchParams(responseText);
-        const url = parsedResponse.get('url');
-        const token = parsedResponse.get('token');
-        const flowOrder = parsedResponse.get('flowOrder');
+        // La respuesta exitosa es un objeto JSON, no una cadena de consulta
+        const url = responseData.url;
+        const token = responseData.token;
+        const flowOrder = responseData.flowOrder;
         
         if (!url || !token || !flowOrder) {
-            console.error("Invalid success response from Flow:", responseText);
+            console.error("Invalid success response from Flow:", responseData);
             throw new Error('Respuesta inválida de Flow al crear el pago. Faltan datos clave.');
         }
 
