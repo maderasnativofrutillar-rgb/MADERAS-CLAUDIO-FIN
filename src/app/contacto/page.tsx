@@ -52,7 +52,16 @@ export default function ContactoPage() {
             <h2 className="font-headline text-2xl font-bold mb-4">Envíanos un Mensaje</h2>
             <p className="text-muted-foreground mb-6">Completa el formulario y te responderemos a la brevedad.</p>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form 
+                name="contact"
+                data-netlify="true"
+                method="POST"
+                onSubmit={form.handleSubmit(onSubmit)} 
+                className="space-y-6"
+              >
+                {/* Hidden input for Netlify */}
+                <input type="hidden" name="form-name" value="contact" />
+
                 <FormField
                   control={form.control}
                   name="name"
