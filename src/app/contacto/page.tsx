@@ -32,6 +32,9 @@ export default function ContactoPage() {
   });
 
   const onSubmit = (data: ContactFormValues) => {
+    // This is a simplified submission handler.
+    // In a real app, you'd likely fetch a server endpoint.
+    // For Netlify, the form attributes handle everything.
     console.log('Contact form data:', data);
     toast({
       title: 'Mensaje Enviado',
@@ -54,8 +57,8 @@ export default function ContactoPage() {
             <Form {...form}>
               <form 
                 name="contact"
-                data-netlify="true"
                 method="POST"
+                data-netlify="true"
                 onSubmit={form.handleSubmit(onSubmit)} 
                 className="space-y-6"
               >
