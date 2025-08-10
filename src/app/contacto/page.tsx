@@ -8,8 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { AtSign, MapPin, Phone } from 'lucide-react';
 
 const contactSchema = z.object({
@@ -21,8 +19,6 @@ const contactSchema = z.object({
 type ContactFormValues = z.infer<typeof contactSchema>;
 
 export default function ContactoPage() {
-  const { toast } = useToast();
-
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -38,66 +34,65 @@ export default function ContactoPage() {
         <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Contacto</h1>
         <p className="text-lg text-muted-foreground mt-2">¿Tienes alguna pregunta? Estamos aquí para ayudarte.</p>
       </div>
-
+      
       <div className="grid md:grid-cols-2 gap-16">
         <div>
-          <h2 className="font-headline text-2xl font-bold mb-4">Envíanos un Mensaje</h2>
-          <p className="text-muted-foreground mb-6">Completa el formulario y te responderemos a la brevedad.</p>
-          <Form {...form}>
-            <form
-              name="contact"
-              method="POST"
-              data-netlify="true"
-              action="/pages/success" // Opcional: redirige a una página de éxito
-              className="space-y-6"
-            >
-              {/* Este input oculto es crucial para el plugin de Next.js */}
-              <input type="hidden" name="form-name" value="contact" />
+            <h2 className="font-headline text-2xl font-bold mb-4">Envíanos un Mensaje</h2>
+            <p className="text-muted-foreground mb-6">Completa el formulario y te responderemos a la brevedad.</p>
+            <Form {...form}>
+              <form 
+                name="contact"
+                method="POST"
+                data-netlify="true"
+                className="space-y-6"
+              >
+                {/* Este input oculto es crucial para el plugin de Next.js */}
+                <input type="hidden" name="form-name" value="contact" />
 
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Tu nombre completo" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Correo Electrónico</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="tu@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mensaje</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Escribe tu consulta aquí..." rows={5} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" size="lg" className="w-full">
-                Enviar Mensaje
-              </Button>
-            </form>
-          </Form>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Tu nombre completo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Correo Electrónico</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="tu@email.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="message"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mensaje</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Escribe tu consulta aquí..." rows={5} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" size="lg" className="w-full">
+                  Enviar Mensaje
+                </Button>
+              </form>
+            </Form>
         </div>
         <div className="space-y-8">
             <div>
