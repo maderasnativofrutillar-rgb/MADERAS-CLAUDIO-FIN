@@ -19,6 +19,12 @@ const contactSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactSchema>;
 
+const encode = (data: any) => {
+  return Object.keys(data)
+    .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+    .join('&');
+};
+
 export default function ContactoPage() {
   const { toast } = useToast();
 
@@ -31,18 +37,11 @@ export default function ContactoPage() {
     },
   });
 
-  // Solución 2: Función para codificar los datos del formulario para Netlify
-  const encode = (data: any) => {
-    return Object.keys(data)
-        .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
-        .join("&");
-  }
-
   const onSubmit = (data: ContactFormValues) => {
-    fetch("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: encode({ "form-name": "contact", ...data }),
+    fetch('/forms.html', { // Apunta al archivo estático
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: encode({ 'form-name': 'contact', ...data }),
     })
     .then(() => {
       toast({
@@ -52,12 +51,12 @@ export default function ContactoPage() {
       form.reset();
     })
     .catch(error => {
-      toast({
-          title: 'Error al enviar',
-          description: 'Hubo un problema al enviar tu mensaje. Por favor, inténtalo de nuevo.',
-          variant: 'destructive',
-      });
       console.error(error);
+      toast({
+        title: 'Error',
+        description: 'Hubo un problema al enviar tu mensaje. Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
     });
   };
 
@@ -67,66 +66,65 @@ export default function ContactoPage() {
         <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl">Contacto</h1>
         <p className="text-lg text-muted-foreground mt-2">¿Tienes alguna pregunta? Estamos aquí para ayudarte.</p>
       </div>
-      
+
       <div className="grid md:grid-cols-2 gap-16">
         <div>
-            <h2 className="font-headline text-2xl font-bold mb-4">Envíanos un Mensaje</h2>
-            <p className="text-muted-foreground mb-6">Completa el formulario y te responderemos a la brevedad.</p>
-            <Form {...form}>
-              <form 
-                name="contact"
-                method="POST"
-                data-netlify="true"
-                data-netlify-honeypot="bot-field"
-                onSubmit={form.handleSubmit(onSubmit)} 
-                className="space-y-6"
-              >
-                <input type="hidden" name="form-name" value="contact" />
+          <h2 className="font-headline text-2xl font-bold mb-4">Envíanos un Mensaje</h2>
+          <p className="text-muted-foreground mb-6">Completa el formulario y te responderemos a la brevedad.</p>
+          <Form {...form}>
+            <form 
+              name="contact"
+              method="POST"
+              onSubmit={form.handleSubmit(onSubmit)} 
+              className="space-y-6"
+            >
+              <input type="hidden" name="form-name" value="contact" />
+              <input type="hidden" name="bot-field" /> 
 
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Tu nombre completo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Correo Electrónico</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="tu@email.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mensaje</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Escribe tu consulta aquí..." rows={5} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" size="lg" className="w-full">
-                  Enviar Mensaje
-                </Button>
-              </form>
-            </Form>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Tu nombre completo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Correo Electrónico</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="tu@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mensaje</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Escribe tu consulta aquí..." rows={5} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" size="lg" className="w-full">
+                Enviar Mensaje
+              </Button>
+            </form>
+          </Form>
         </div>
         <div className="space-y-8">
             <div>
