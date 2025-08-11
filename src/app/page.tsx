@@ -51,13 +51,13 @@ export default async function Home() {
 
   return (
     <main className="flex-1">
-      <section className="relative w-full h-screen text-white">
+      <section className="relative w-full h-screen text-white bg-foreground/20">
         {siteImages.hero && (
             <Image
             src={siteImages.hero}
             alt="Taller de Madera Nativo Sur"
             fill
-            className="object-cover"
+            className="object-cover animate-image-in"
             priority
             data-ai-hint="wood workshop"
             />
