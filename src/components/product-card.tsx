@@ -18,7 +18,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const { addToCart, getPriceForQuantity } = useCart();
+  const { addToCart } = useCart();
   
   const allImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
   const [currentImage, setCurrentImage] = useState(product.image);
@@ -48,7 +48,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   };
   
   const hasOffer = product.offerPercentage && product.offerPercentage > 0;
-  const displayPrice = getPriceForQuantity(product, 1);
+  const displayPrice = hasOffer ? product.price * (1 - product.offerPercentage / 100) : product.price;
 
   return (
     <Card 

@@ -7,13 +7,12 @@ import { useToast } from "@/hooks/use-toast"
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: Product, quantity?: number, unitPrice?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartTotal: number;
-  getPriceForQuantity: (product: Product, quantity: number) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -40,41 +39,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
-
-  const getPriceForQuantity = (product: Product, quantity: number): number => {
-    if (quantity >= 3 && product.priceFor3 && product.priceFor3 > 0) {
-      return product.priceFor3 / 3;
-    }
-    if (quantity >= 2 && product.priceFor2 && product.priceFor2 > 0) {
-      return product.priceFor2 / 2;
-    }
-    if (quantity >= 1 && product.priceFor1 && product.priceFor1 > 0) {
-      return product.priceFor1;
-    }
-    if (product.offerPercentage && product.offerPercentage > 0) {
-      return product.price * (1 - product.offerPercentage / 100);
-    }
-    return product.price;
-  };
   
-  const addToCart = (product: Product, quantityToAdd = 1) => {
+  const addToCart = (product: Product, quantityToAdd = 1, unitPrice?: number) => {
+    
+    const price = unitPrice !== undefined ? unitPrice : (product.offerPercentage && product.offerPercentage > 0 ? product.price * (1 - product.offerPercentage / 100) : product.price);
+
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       
       let newItems;
       if (existingItem) {
         newItems = prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantityToAdd } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantityToAdd, price } : item
         );
       } else {
-        newItems = [...prevItems, { ...product, quantity: quantityToAdd }];
+        newItems = [...prevItems, { ...product, quantity: quantityToAdd, price }];
       }
-
-      // After updating quantities, recalculate prices for all items based on their new quantity
-      return newItems.map(item => ({
-        ...item,
-        price: getPriceForQuantity(item, item.quantity)
-      }));
+      return newItems;
     });
 
      toast({
@@ -101,18 +82,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setCartItems((prevItems) => {
-      const newItems = prevItems.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              quantity: quantity,
-              price: getPriceForQuantity(item, quantity) // Recalculate price on quantity update
-            }
-          : item
-      );
-      return newItems;
-    });
+    setCartItems((prevItems) => 
+      prevItems.map((item) =>
+        item.id === productId ? { ...item, quantity: quantity } : item
+      )
+    );
   };
 
   const clearCart = () => {
@@ -132,7 +106,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         cartCount,
         cartTotal,
-        getPriceForQuantity
       }}
     >
       {children}
