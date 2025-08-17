@@ -7,7 +7,7 @@ import { Product } from '@/lib/types';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/cart-context';
-import { ShoppingCart, ChevronsRight, Truck, Clock, Minus, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ChevronsRight, Truck, Clock, Minus, Plus, ChevronLeft, ChevronRight, Ruler } from 'lucide-react';
 import Link from 'next/link';
 import { doc, getDoc, collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from '@/lib/firebase';
@@ -150,6 +150,7 @@ function ProductDetailContent() {
   const totalPrice = basePrice * quantity;
   const hasOffer = product.offerPercentage && product.offerPercentage > 0;
   const hasWholesale = product.wholesalePrice3 || product.wholesalePrice6 || product.wholesalePrice9;
+  const hasSpecifications = product.width || product.length || product.thickness || product.woodType || product.madeIn || product.curing;
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -267,13 +268,28 @@ function ProductDetailContent() {
             </Alert>
           )}
 
-           <Accordion type="single" collapsible className="w-full">
+           <Accordion type="single" collapsible className="w-full" defaultValue='description'>
               <AccordionItem value="description">
                 <AccordionTrigger>Descripción</AccordionTrigger>
                 <AccordionContent>
                   <p className="text-muted-foreground text-base whitespace-pre-wrap">{product.description}</p>
                 </AccordionContent>
               </AccordionItem>
+              {hasSpecifications && (
+                  <AccordionItem value="specifications">
+                      <AccordionTrigger>Especificaciones</AccordionTrigger>
+                      <AccordionContent>
+                          <ul className="space-y-2 text-muted-foreground">
+                              {product.width && product.length && product.thickness && (
+                                  <li className='flex items-center gap-2'><Ruler size={16} className='text-primary' /> Dimensiones: {product.length}cm x {product.width}cm x {product.thickness}cm</li>
+                              )}
+                              {product.woodType && <li className='flex items-center gap-2'><Ruler size={16} className='text-primary' /> Madera: {product.woodType}</li>}
+                              {product.madeIn && <li className='flex items-center gap-2'><Ruler size={16} className='text-primary' /> Hecho en: {product.madeIn}</li>}
+                              {product.curing && <li className='flex items-center gap-2'><Ruler size={16} className='text-primary' /> Curado con: {product.curing}</li>}
+                          </ul>
+                      </AccordionContent>
+                  </AccordionItem>
+              )}
               <AccordionItem value="shipping">
                 <AccordionTrigger>Información de Envío</AccordionTrigger>
                 <AccordionContent className='space-y-4'>

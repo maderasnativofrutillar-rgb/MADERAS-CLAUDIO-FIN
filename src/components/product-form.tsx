@@ -15,7 +15,7 @@ import { db, storage } from '@/lib/firebase';
 import { type Product } from '@/lib/types';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight } from 'lucide-react';
+import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight, Ruler, MapPin, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { Checkbox } from './ui/checkbox';
 import { categories } from '@/lib/constants';
@@ -36,6 +36,12 @@ const productFormSchema = z.object({
     wholesalePrice9: z.coerce.number().min(0).optional().default(0),
     categories: z.array(z.string()).optional().default([]),
     customTag: z.string().max(10, "La etiqueta no puede tener más de 10 caracteres.").optional(),
+    width: z.coerce.number().min(0).optional(),
+    length: z.coerce.number().min(0).optional(),
+    thickness: z.coerce.number().min(0).optional(),
+    woodType: z.string().optional(),
+    madeIn: z.string().optional(),
+    curing: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -101,6 +107,12 @@ export function ProductForm() {
             wholesalePrice9: 0,
             categories: [],
             customTag: "",
+            width: 0,
+            length: 0,
+            thickness: 0,
+            woodType: "",
+            madeIn: "",
+            curing: "",
         },
     });
 
@@ -122,6 +134,12 @@ export function ProductForm() {
                             wholesalePrice9: productData.wholesalePrice9 || 0,
                             categories: productData.categories || [],
                             customTag: productData.customTag || "",
+                            width: productData.width || 0,
+                            length: productData.length || 0,
+                            thickness: productData.thickness || 0,
+                            woodType: productData.woodType || "",
+                            madeIn: productData.madeIn || "",
+                            curing: productData.curing || "",
                         });
                         const existingImages = [productData.image, ...(productData.images || [])].filter(Boolean) as string[];
                         setImages(existingImages);
@@ -216,7 +234,13 @@ export function ProductForm() {
                 wholesalePrice9: data.wholesalePrice9 || 0,
                 categories: data.categories || [],
                 customTag: data.customTag || "",
-                dataAiHint: "" // Add this line
+                dataAiHint: "",
+                width: data.width,
+                length: data.length,
+                thickness: data.thickness,
+                woodType: data.woodType,
+                madeIn: data.madeIn,
+                curing: data.curing,
             };
 
             if (product) {
@@ -274,6 +298,34 @@ export function ProductForm() {
                                     <FormControl><Input type="number" placeholder="Ej: 20" {...field} /></FormControl>
                                     <FormMessage />
                                 </FormItem>
+                            )} />
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardHeader><CardTitle>Especificaciones del Producto</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <FormField control={form.control} name="width" render={({ field }) => (
+                                <FormItem><FormLabel>Ancho (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="length" render={({ field }) => (
+                                <FormItem><FormLabel>Largo (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="thickness" render={({ field }) => (
+                                <FormItem><FormLabel>Espesor (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                             <FormField control={form.control} name="woodType" render={({ field }) => (
+                                <FormItem><FormLabel>Tipo de Madera</FormLabel><FormControl><Input {...field} placeholder="Ej: Roble" /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="madeIn" render={({ field }) => (
+                                <FormItem><FormLabel>Hecho en</FormLabel><FormControl><Input {...field} placeholder="Ej: Frutillar, Chile"/></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="curing" render={({ field }) => (
+                                <FormItem><FormLabel>Curado con</FormLabel><FormControl><Input {...field} placeholder="Ej: Cera de Abeja y Aceite Mineral" /></FormControl><FormMessage /></FormItem>
                             )} />
                         </div>
                     </CardContent>

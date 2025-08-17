@@ -21,6 +21,14 @@ export interface Product {
 
     // Custom Tag
     customTag?: string;
+
+    // Specifications
+    width?: number;
+    length?: number;
+    thickness?: number;
+    woodType?: string;
+    madeIn?: string;
+    curing?: string;
   }
   
   export interface CartItem extends Product {
