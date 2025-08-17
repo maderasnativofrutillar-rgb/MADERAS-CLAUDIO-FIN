@@ -34,8 +34,13 @@ const FREE_SHIPPING_THRESHOLD = 49000;
 
 // RUT validation function
 const validateRut = (rut: string) => {
-  if (!/^[0-9]+-[0-9kK]{1}$/.test(rut)) return false;
-  const [body, dv] = rut.split('-');
+  if (!rut) return false;
+  // Clean RUT (remove dots and convert K to lowercase)
+  const cleanRut = rut.replace(/\./g, '').toLowerCase();
+
+  if (!/^[0-9]+-[0-9k]{1}$/.test(cleanRut)) return false;
+  
+  const [body, dv] = cleanRut.split('-');
   let sum = 0;
   let multiplier = 2;
   for (let i = body.length - 1; i >= 0; i--) {
@@ -44,7 +49,8 @@ const validateRut = (rut: string) => {
   }
   const calculatedDv = 11 - (sum % 11);
   const dvChar = calculatedDv === 11 ? '0' : calculatedDv === 10 ? 'k' : String(calculatedDv);
-  return dvChar === dv.toLowerCase();
+  
+  return dvChar === dv;
 };
 
 
@@ -98,6 +104,7 @@ export default function CheckoutPage() {
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
+    mode: 'onBlur', // Trigger validation on blur
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -118,9 +125,11 @@ export default function CheckoutPage() {
     if (selectedRegion) {
         const regionData = chileanRegions.find(r => r.name === selectedRegion);
         setAvailableCommunes(regionData ? regionData.communes : []);
-        form.setValue('commune', undefined, { shouldValidate: true });
+        // Reset commune field when region changes
+        form.setValue('commune', '', { shouldValidate: true });
     } else {
         setAvailableCommunes([]);
+         form.setValue('commune', '', { shouldValidate: true });
     }
   }, [selectedRegion, form]);
 
@@ -200,7 +209,7 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">1. Información de Contacto</CardTitle>
+            <CardTitle className="font-headline">1. Información de Contacto y Envío</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -219,7 +228,7 @@ export default function CheckoutPage() {
                       <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="rut" render={({ field }) => (
-                      <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12345678-9" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                   </div>
                   <FormField control={form.control} name="phone" render={({ field }) => (
@@ -257,7 +266,7 @@ export default function CheckoutPage() {
                              <FormField control={form.control} name="commune" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Comuna</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegion}>
+                                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={!selectedRegion}>
                                         <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una comuna" /></SelectTrigger></FormControl>
                                         <SelectContent>
                                             {availableCommunes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -386,3 +395,4 @@ export default function CheckoutPage() {
     </div>
   );
 }
+    
