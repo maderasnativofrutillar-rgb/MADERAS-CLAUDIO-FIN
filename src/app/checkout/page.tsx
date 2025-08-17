@@ -399,16 +399,19 @@ export default function CheckoutPage() {
                       name="acceptTerms"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
+                           <FormControl>
+                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *
-                            </FormLabel>
+                            <label
+                              htmlFor={field.name}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                               He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *
+                            </label>
                             <FormMessage />
                           </div>
                         </FormItem>
@@ -418,17 +421,20 @@ export default function CheckoutPage() {
                       control={form.control}
                       name="newsletter"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
+                         <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                           <FormControl>
+                             <Checkbox
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Quiero recibir noticias de productos, descuentos y lanzamientos.
-                            </FormLabel>
+                            <label
+                                htmlFor={field.name}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                               Quiero recibir noticias de productos, descuentos y lanzamientos.
+                            </label>
                           </div>
                         </FormItem>
                       )}
