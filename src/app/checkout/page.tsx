@@ -224,6 +224,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-12 md:py-16">
+        <Form {...form}>
       <div className="text-center mb-12">
         <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
           Finalizar Compra
@@ -231,42 +232,41 @@ export default function CheckoutPage() {
          <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">¡Estás a solo un paso de llevar la magia del sur a tu hogar! Gracias por elegirnos.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">1. Información de Contacto y Envío</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form id="checkout-form" className="space-y-8">
+            <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">1. Información de Contacto y Envío</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form id="checkout-form" className="space-y-8">
                 <div className="space-y-6">
-                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="firstName" render={({ field }) => (
-                      <FormItem><FormLabel>Nombres</FormLabel><FormControl><Input placeholder="Juan" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Nombres</FormLabel><FormControl><Input placeholder="Juan" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
-                     <FormField control={form.control} name="lastName" render={({ field }) => (
-                      <FormItem><FormLabel>Apellidos</FormLabel><FormControl><Input placeholder="Pérez" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormField control={form.control} name="lastName" render={({ field }) => (
+                        <FormItem><FormLabel>Apellidos</FormLabel><FormControl><Input placeholder="Pérez" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="email" render={({ field }) => (
-                      <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="rut" render={({ field }) => (
-                      <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
-                  </div>
-                  <FormField control={form.control} name="phone" render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Celular</FormLabel>
-                          <div className="flex items-center">
-                              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-secondary text-sm h-10">+56</span>
-                              <FormControl>
-                                  <Input type="tel" placeholder="9 1234 5678" {...field} className="rounded-l-none" />
-                              </FormControl>
-                          </div>
-                          <FormMessage />
-                      </FormItem>
-                  )} />
+                    </div>
+                    <FormField control={form.control} name="phone" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Celular</FormLabel>
+                            <div className="flex items-center">
+                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-secondary text-sm h-10">+56</span>
+                                <FormControl>
+                                    <Input type="tel" placeholder="9 1234 5678" {...field} className="rounded-l-none" />
+                                </FormControl>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                 </div>
                 
                 <Separator />
@@ -275,7 +275,7 @@ export default function CheckoutPage() {
                     <h3 className="font-headline text-lg font-semibold mb-4">2. Dirección de Envío</h3>
                     <div className="space-y-6">
                         <div className="grid sm:grid-cols-2 gap-4">
-                             <FormField control={form.control} name="region" render={({ field }) => (
+                                <FormField control={form.control} name="region" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Región</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -287,7 +287,7 @@ export default function CheckoutPage() {
                                     <FormMessage />
                                 </FormItem>
                             )}/>
-                             <FormField control={form.control} name="commune" render={({ field }) => (
+                                <FormField control={form.control} name="commune" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Comuna</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value || ''} disabled={!selectedRegion}>
@@ -304,11 +304,11 @@ export default function CheckoutPage() {
                             <FormField control={form.control} name="street" render={({ field }) => (
                                 <FormItem className="sm:col-span-2"><FormLabel>Calle</FormLabel><FormControl><Input placeholder="Av. Siempre Viva" {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
-                             <FormField control={form.control} name="number" render={({ field }) => (
+                                <FormField control={form.control} name="number" render={({ field }) => (
                                 <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
                             )}/>
                         </div>
-                         <FormField control={form.control} name="apartment" render={({ field }) => (
+                            <FormField control={form.control} name="apartment" render={({ field }) => (
                             <FormItem><FormLabel>Departamento / Casa (Opcional)</FormLabel><FormControl><Input placeholder="Casa 2, Depto. 101..." {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
                         <FormField control={form.control} name="orderNotes" render={({ field }) => (
@@ -316,11 +316,9 @@ export default function CheckoutPage() {
                         )}/>
                     </div>
                 </div>
-
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                </form>
+            </CardContent>
+            </Card>
         
         <div className="space-y-8">
             <Card className="bg-secondary/50">
@@ -365,35 +363,43 @@ export default function CheckoutPage() {
                     <p>Total</p>
                     <p>{formatPrice(finalTotal)}</p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <Card className="mt-4">
-                    <CardHeader className="p-4">
-                        <CardTitle className="text-base font-headline">3. Costo de Envío</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                        {isFreeShipping ? (
-                            <Alert className="border-green-300 bg-green-50 text-green-800">
-                                <Info className="h-4 w-4 !text-green-600" />
-                                <AlertTitle>¡Felicitaciones!</AlertTitle>
-                                <AlertDescription>Tu compra califica para envío gratuito.</AlertDescription>
-                            </Alert>
-                        ) : (
-                             <Select onValueChange={handleShippingZoneChange} disabled={isFreeShipping}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona tu zona de envío" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(shippingZones).map(([key, {name, price}]) => (
-                                        <SelectItem key={key} value={key}>{name} ({formatPrice(price)})</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    </CardContent>
-                  </Card>
-                  
-                  <div className="mt-6 space-y-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">3. Costo de Envío</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isFreeShipping ? (
+                        <Alert className="border-green-300 bg-green-50 text-green-800">
+                            <Info className="h-4 w-4 !text-green-600" />
+                            <AlertTitle>¡Felicitaciones!</AlertTitle>
+                            <AlertDescription>Tu compra califica para envío gratuito.</AlertDescription>
+                        </Alert>
+                    ) : (
+                            <Select onValueChange={handleShippingZoneChange} disabled={isFreeShipping}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Selecciona tu zona de envío" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(shippingZones).map(([key, {name, price}]) => (
+                                    <SelectItem key={key} value={key}>{name} ({formatPrice(price)})</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                </CardContent>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">4. Pago Seguro</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
                     <p className="text-xs text-muted-foreground">Tus datos personales se utilizarán para procesar tu pedido, mejorar tu experiencia en esta web y otros propósitos descritos en nuestra <Link href="/legal/privacidad" className="underline" target="_blank">política de privacidad</Link>.</p>
+                    
                     <FormField
                       control={form.control}
                       name="acceptTerms"
@@ -406,18 +412,18 @@ export default function CheckoutPage() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <label
-                              htmlFor={field.name}
+                            <FormLabel
                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                             >
                                He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *
-                            </label>
+                            </FormLabel>
                             <FormMessage />
                           </div>
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    
+                    <FormField
                       control={form.control}
                       name="newsletter"
                       render={({ field }) => (
@@ -429,35 +435,31 @@ export default function CheckoutPage() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <label
-                                htmlFor={field.name}
+                            <FormLabel
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                             >
                                Quiero recibir noticias de productos, descuentos y lanzamientos.
-                            </label>
+                            </FormLabel>
                           </div>
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <div className="mt-6">
                     {paymentMethodsImage && (
                         <Image src={paymentMethodsImage} alt="Métodos de pago" width={300} height={100} className="mx-auto" data-ai-hint="payment methods" />
                     )}
-                  </div>
 
-                   <Button form="checkout-form" type="submit" size="lg" className="w-full text-base mt-6" disabled={isProcessing || !acceptTerms}>
-                    {isProcessing ? (
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    ) : (
-                        <CreditCard className="mr-2 h-5 w-5" />
-                    )}
-                    {isProcessing ? 'Procesando...' : `Pagar de forma segura ${formatPrice(finalTotal)}`}
-                </Button>
-                </div>
-              </CardContent>
+                    <Button form="checkout-form" type="submit" size="lg" className="w-full text-base" disabled={isProcessing || !acceptTerms}>
+                        {isProcessing ? (
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        ) : (
+                            <CreditCard className="mr-2 h-5 w-5" />
+                        )}
+                        {isProcessing ? 'Procesando...' : `Pagar de forma segura ${formatPrice(finalTotal)}`}
+                    </Button>
+                </CardContent>
             </Card>
+
 
             <div>
                 <h2 className="font-headline text-xl text-center font-bold mb-4">Que no se te olvide acompañar tu compra de...</h2>
@@ -479,10 +481,7 @@ export default function CheckoutPage() {
         </div>
 
       </div>
+        </Form>
     </div>
   );
 }
-
-    
-
-    
