@@ -394,23 +394,45 @@ export default function CheckoutPage() {
                   
                   <div className="mt-6 space-y-4">
                     <p className="text-xs text-muted-foreground">Tus datos personales se utilizarán para procesar tu pedido, mejorar tu experiencia en esta web y otros propósitos descritos en nuestra <Link href="/legal/privacidad" className="underline" target="_blank">política de privacidad</Link>.</p>
-                    <FormField control={form.control} name="acceptTerms" render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                        <div className="space-y-1 leading-none">
-                            <FormLabel>He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *</FormLabel>
+                    <FormField
+                      control={form.control}
+                      name="acceptTerms"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *
+                            </FormLabel>
                             <FormMessage />
-                        </div>
-                      </FormItem>
-                    )} />
-                     <FormField control={form.control} name="newsletter" render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                        <div className="space-y-1 leading-none">
-                            <FormLabel>Quiero recibir noticias de productos, descuentos y lanzamientos.</FormLabel>
-                        </div>
-                      </FormItem>
-                    )} />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="newsletter"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Quiero recibir noticias de productos, descuentos y lanzamientos.
+                            </FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   <div className="mt-6">
@@ -454,5 +476,7 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
 
     
