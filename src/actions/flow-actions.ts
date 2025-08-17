@@ -23,12 +23,12 @@ interface FlowErrorResponse {
 // URL de producción, ya está configurada correctamente.
 const FLOW_API_URL = 'https://www.flow.cl/api';
 
-// Obtener las credenciales de las variables de entorno de Netlify
+// Obtener las credenciales de las variables de entorno
 const apiKey = process.env.FLOW_API_KEY;
 const secretKey = process.env.FLOW_SECRET_KEY;
 
 // Generar la firma para la API de Flow
-const generateSignature = (params: Record<string, any>): string => {
+const generateSignature = (params: Record<string, string>): string => {
     if (!secretKey) {
         throw new Error('Flow Secret Key no está configurada.');
     }
@@ -52,7 +52,8 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     const baseUrl = `${protocol}://${host}`;
 
     // Parámetros para la firma. Se deben firmar todos los parámetros que se envían.
-    const paramsForSignature = {
+    // Todos los valores DEBEN ser strings.
+    const paramsForSignature: Record<string, string> = {
         apiKey: apiKey,
         commerceOrder: paymentData.commerceOrder,
         subject: `Pago por orden ${paymentData.commerceOrder}`,
@@ -68,9 +69,9 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
 
     // Construir el cuerpo de la solicitud para el POST
     const finalParams = new URLSearchParams();
-    // Añadir todos los parámetros firmados, y asegurarse de que los tipos de datos sean correctos para el body
+    // Añadir todos los parámetros firmados
     Object.keys(paramsForSignature).sort().forEach(key => {
-      finalParams.append(key, String((paramsForSignature as any)[key]));
+      finalParams.append(key, paramsForSignature[key]);
     });
     // Agregar la firma al final
     finalParams.append('s', signature);
@@ -78,7 +79,9 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     // --- LOGS DE DEPURACIÓN (MUY ÚTILES) ---
     console.log("------------------------------------------");
     console.log("Parámetros para la firma:", paramsForSignature);
-    console.log("Cadena firmada:", generateSignature(paramsForSignature));
+    const toSignString = Object.keys(paramsForSignature).sort().map(key => `${key}${paramsForSignature[key]}`).join('');
+    console.log("Cadena a firmar:", toSignString);
+    console.log("Firma generada:", signature);
     console.log("Cuerpo de la solicitud POST:", finalParams.toString());
     console.log("------------------------------------------");
     // --- FIN DE LOS LOGS DE DEPURACIÓN ---
@@ -99,7 +102,7 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
             throw new Error(`Error de Flow: ${responseData.message} (Código: ${responseData.code})`);
         }
         
-        // La respuesta exitosa es un objeto JSON, no una cadena de consulta
+        // La respuesta exitosa es un objeto JSON
         const url = responseData.url;
         const token = responseData.token;
         const flowOrder = responseData.flowOrder;
