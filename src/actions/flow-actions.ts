@@ -24,7 +24,6 @@ const generateSignature = (params: Record<string, string>): string => {
     if (!secretKey) {
         throw new Error('Flow Secret Key no está configurada.');
     }
-    // Ordenar los parámetros alfabéticamente por la clave
     const sortedKeys = Object.keys(params).sort();
     const toSign = sortedKeys.map(key => `${key}${params[key]}`).join('');
     
@@ -42,9 +41,8 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     const protocol = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${protocol}://${host}`;
 
-    // 1. Prepara todos los parámetros requeridos por Flow, excepto la firma.
-    // Asegúrate de que todos los valores sean strings.
-    const paramsForSignature: Record<string, string> = {
+    // 1. Prepara todos los parámetros requeridos por Flow como strings.
+    const params: Record<string, string> = {
         apiKey,
         commerceOrder: paymentData.commerceOrder,
         subject: `Pago por orden ${paymentData.commerceOrder}`,
@@ -53,30 +51,31 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         email: paymentData.email,
         urlConfirmation: `${baseUrl}/api/flow/confirm`,
         urlReturn: `${baseUrl}/checkout/result`,
-        paymentMethod: '9',
+        paymentMethod: '9', // '9' para todos los medios de pago disponibles.
     };
 
     // 2. Genera la firma usando los parámetros ordenados.
-    const signature = generateSignature(paramsForSignature);
+    const signature = generateSignature(params);
 
-    // 3. Prepara el cuerpo de la solicitud (body) con FormData, que maneja el formato application/x-www-form-urlencoded
-    const formData = new FormData();
-    for (const key in paramsForSignature) {
-        formData.append(key, paramsForSignature[key]);
-    }
-    formData.append('s', signature);
+    // 3. Construye el cuerpo de la solicitud en formato x-www-form-urlencoded
+    const body = new URLSearchParams({
+        ...params,
+        s: signature,
+    });
     
     try {
         const response = await fetch(`${FLOW_API_URL}/payment/create`, {
             method: 'POST',
-            body: formData, // FormData se encargará de los headers correctos.
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body.toString(),
         });
         
         const responseData = await response.json();
         
         if (!response.ok) {
             console.error("Flow API Error:", responseData);
-            // Proporciona un mensaje de error más claro al cliente.
             const errorMessage = `Error de Flow: ${responseData.message || 'Error desconocido'} (Código: ${responseData.code || 'N/A'})`;
             throw new Error(errorMessage);
         }
@@ -97,7 +96,6 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
 
     } catch (error) {
         console.error('Fallo al crear la orden en Flow:', error);
-        // Devuelve el mensaje de error para ser mostrado en el frontend.
         return { message: error instanceof Error ? error.message : 'Ocurrió un error desconocido al procesar el pago.' };
     }
 }
