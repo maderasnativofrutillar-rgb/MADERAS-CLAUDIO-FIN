@@ -13,7 +13,7 @@ import { collection, addDoc, doc, serverTimestamp, updateDoc, getDoc } from 'fir
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { type Product } from '@/lib/types';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight } from 'lucide-react';
 import Image from 'next/image';
@@ -21,8 +21,9 @@ import { Checkbox } from './ui/checkbox';
 import { categories } from '@/lib/constants';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { cn } from '@/lib/utils';
 
-const MAX_IMAGES = 5;
+const MAX_IMAGES = 6;
 
 const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
@@ -80,9 +81,12 @@ export function ProductForm() {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    // This state will now hold unified image data for reordering
+    const [images, setImages] = useState<(string | File)[]>([]);
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-    const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
 
     const form = useForm<ProductFormValues>({
         resolver: zodResolver(productFormSchema),
@@ -120,7 +124,7 @@ export function ProductForm() {
                             customTag: productData.customTag || "",
                         });
                         const existingImages = [productData.image, ...(productData.images || [])].filter(Boolean) as string[];
-                        setImagePreviews(existingImages);
+                        setImages(existingImages);
                     }
                 })
                 .finally(() => setLoading(false));
@@ -128,45 +132,41 @@ export function ProductForm() {
     }, [productId, form]);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        const totalImageCount = imagePreviews.length + newImageFiles.length + acceptedFiles.length;
-
-        if (totalImageCount > MAX_IMAGES) {
+        if (images.length + acceptedFiles.length > MAX_IMAGES) {
             toast({ title: 'Límite de imágenes alcanzado', description: `No puedes subir más de ${MAX_IMAGES} imágenes en total.`, variant: 'destructive' });
             return;
         }
-
-        setNewImageFiles(prev => [...prev, ...acceptedFiles]);
-
-        const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews(prev => [...prev, ...newPreviews]);
-    }, [toast, imagePreviews.length, newImageFiles.length]);
+        setImages(prev => [...prev, ...acceptedFiles]);
+    }, [toast, images.length]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
     });
 
-    const removeImage = (index: number, src: string) => {
-        if (src.startsWith('http')) {
-            setImagesToDelete(prev => [...prev, src]);
+    const removeImage = (index: number) => {
+        const imageToRemove = images[index];
+        if (typeof imageToRemove === 'string' && imageToRemove.startsWith('http')) {
+            setImagesToDelete(prev => [...prev, imageToRemove]);
         }
-        
-        const fileIndexToRemove = imagePreviews.slice(0, index).filter(p => !p.startsWith('http')).length;
-        const localFileIndexToRemove = index - (imagePreviews.length - newImageFiles.length);
+        setImages(prev => prev.filter((_, i) => i !== index));
+    };
 
-        if (src.startsWith('blob:')) {
-            setNewImageFiles(prev => prev.filter((_, i) => i !== localFileIndexToRemove));
-        }
-
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    const handleDragEnd = () => {
+        if (dragItem.current === null || dragOverItem.current === null) return;
+        const newImages = [...images];
+        const [reorderedItem] = newImages.splice(dragItem.current, 1);
+        newImages.splice(dragOverItem.current, 0, reorderedItem);
+        setImages(newImages);
+        dragItem.current = null;
+        dragOverItem.current = null;
     };
 
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true);
 
         try {
-            const remainingImageUrls = imagePreviews.filter(p => p.startsWith('http'));
-            if (remainingImageUrls.length + newImageFiles.length === 0) {
+            if (images.length === 0) {
                 toast({ title: 'Error', description: 'Debes subir al menos una imagen.', variant: 'destructive' });
                 setLoading(false);
                 return;
@@ -183,17 +183,20 @@ export function ProductForm() {
                     }
                 }
             }
+            
+            const uploadPromises = images.map(async (image) => {
+                if (typeof image === 'string') {
+                    return image; // It's an existing URL
+                }
+                // It's a new file, upload it
+                const storageRef = ref(storage, `products/${Date.now()}_${image.name}`);
+                const fileBuffer = await image.arrayBuffer();
+                await uploadBytes(storageRef, fileBuffer);
+                return getDownloadURL(storageRef);
+            });
 
-            const uploadedUrls = await Promise.all(
-                newImageFiles.map(async (file) => {
-                    const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                    const fileBuffer = await file.arrayBuffer();
-                    await uploadBytes(storageRef, fileBuffer);
-                    return getDownloadURL(storageRef);
-                })
-            );
+            const finalImageUrls = await Promise.all(uploadPromises);
 
-            const finalImageUrls = [...remainingImageUrls.filter(url => !imagesToDelete.includes(url)), ...uploadedUrls];
             if (finalImageUrls.length === 0) {
                 toast({ title: 'Error', description: 'El producto debe tener al menos una imagen.', variant: 'destructive' });
                 setLoading(false);
@@ -357,19 +360,29 @@ export function ProductForm() {
                             </div>
                         </FormControl>
 
-                        {imagePreviews.length > 0 && (
+                        {images.length > 0 && (
                             <div>
-                                <p className="text-sm font-medium mb-2">Imágenes actuales: ({imagePreviews.length} de {MAX_IMAGES})</p>
-                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                                    {imagePreviews.map((src, index) => (
-                                        <div key={src} className="relative group aspect-square">
+                                <p className="text-sm font-medium mb-2">Imágenes actuales: ({images.length} de {MAX_IMAGES})</p>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                                    {images.map((image, index) => {
+                                      const src = typeof image === 'string' ? image : URL.createObjectURL(image);
+                                      return (
+                                        <div 
+                                            key={src}
+                                            className={cn("relative group aspect-square cursor-grab", dragOverItem.current === index && "opacity-50")}
+                                            draggable
+                                            onDragStart={() => dragItem.current = index}
+                                            onDragEnter={() => dragOverItem.current = index}
+                                            onDragEnd={handleDragEnd}
+                                            onDragOver={(e) => e.preventDefault()}
+                                        >
                                             <Image src={src} alt={`Preview ${index}`} fill className="object-cover rounded-md" unoptimized />
                                             <Button
                                                 type="button"
                                                 variant="destructive"
                                                 size="icon"
                                                 className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                onClick={() => removeImage(index, src)}
+                                                onClick={() => removeImage(index)}
                                             >
                                                 <X className="h-4 w-4" />
                                             </Button>
@@ -377,7 +390,7 @@ export function ProductForm() {
                                                 <div className="absolute bottom-0 w-full bg-black/50 text-white text-xs text-center py-0.5 rounded-b-md">Principal</div>
                                             )}
                                         </div>
-                                    ))}
+                                    )})}
                                 </div>
                             </div>
                         )}

@@ -10,6 +10,10 @@ import { Instagram } from "lucide-react";
 import { TypewriterEffect } from "@/components/typewriter-effect";
 import { CarouselWithProgress } from "@/components/product-carousel-progress";
 
+// Ensure this page is dynamically rendered
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 async function getFeaturedProducts(): Promise<Product[]> {
   const productsCollection = collection(db, "products");
   const q = query(productsCollection, orderBy("createdAt", "desc"), limit(8));
