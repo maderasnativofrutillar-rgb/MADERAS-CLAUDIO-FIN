@@ -40,3 +40,5 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Forcing a server restart to clear HMR issues.
