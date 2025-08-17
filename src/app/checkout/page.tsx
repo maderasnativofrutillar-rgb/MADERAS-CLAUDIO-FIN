@@ -407,7 +407,7 @@ export default function CheckoutPage() {
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>Quiero recibir noticias de productos, descuentos y lanzamientos.</FormLabel>
+                            <FormLabel>Quiero recibir noticias de productos, descuentos y lanzamientos.</FormLabel>
                         </div>
                       </FormItem>
                     )} />
@@ -454,3 +454,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
