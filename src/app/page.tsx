@@ -84,12 +84,10 @@ export default async function Home() {
               </Button>
             </div>
             <div className="absolute bottom-10 flex flex-col items-center gap-2">
-                <p className="text-sm uppercase tracking-wider">Síguenos en nuestras redes para que estés actualizado de todas las novedades</p>
-                <div className="flex items-center gap-4">
-                    <Link href="#" className="text-white hover:text-primary"><Instagram size={24} /></Link>
-                    <Link href="#" className="text-white hover:text-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.52.02c1.31-.02 2.61.01 3.91.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.65 4.24 1.71v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-1.06-.64-1.9-1.54-2.46-2.65-1.1-2.26-1.1-5.18-.01-7.44.83-1.7 2.1-3.05 3.73-3.92 1.43-.78 3.04-1.17 4.65-1.16.02 2.84-.01 5.68.01 8.52-.01 1.05-.45 2.09-.96 3.02-.75 1.4-2.14 2.37-3.64 2.45-1.1.06-2.16-.3-3.04-1.01-.8-.61-1.28-1.5-1.57-2.51-.43-1.48-.43-3.15.01-4.63.48-1.63 1.55-3.03 3-3.95s3.23-1.43 4.95-1.42c.03 1.55.02 3.1.01 4.64.01 1.49-.49 2.94-1.43 4.02-1.03 1.19-2.58 1.84-4.14 1.79-1.09-.03-2.16-.48-2.93-1.25-.69-.7-1.14-1.58-1.28-2.56-.25-1.74.28-3.5.95-5.02.63-1.44 1.6-2.68 2.87-3.58.91-.65 1.95-1.09 3.03-1.32.95-.21 1.92-.3 2.89-.31.03-1.5.02-2.99.01-4.49z"/></svg>
-                    </Link>
+                <p className="text-sm uppercase tracking-wider">Síguenos en nuestras redes</p>
+                <div className="flex items-center gap-6 text-lg font-semibold">
+                    <Link href="#" className="text-pink-400 hover:text-pink-300 transition-colors">Instagram</Link>
+                    <Link href="#" className="text-cyan-400 hover:text-cyan-300 transition-colors">TikTok</Link>
                 </div>
             </div>
           </div>
