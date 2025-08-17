@@ -180,20 +180,20 @@ export const shippingZones = {
 };
 
 export const chileanRegions = [
-  { name: 'Arica y Parinacota', cities: ['Arica', 'Putre'] },
-  { name: 'Tarapacá', cities: ['Iquique', 'Alto Hospicio', 'Pozo Almonte'] },
-  { name: 'Antofagasta', cities: ['Antofagasta', 'Calama', 'Tocopilla', 'Mejillones'] },
-  { name: 'Atacama', cities: ['Copiapó', 'Vallenar', 'Chañaral', 'Caldera'] },
-  { name: 'Coquimbo', cities: ['La Serena', 'Coquimbo', 'Ovalle', 'Illapel'] },
-  { name: 'Valparaíso', cities: ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'San Antonio', 'Los Andes'] },
-  { name: 'Metropolitana de Santiago', cities: ['Santiago', 'Puente Alto', 'Maipú', 'La Florida', 'Las Condes', 'Providencia'] },
-  { name: 'Libertador General Bernardo O\'Higgins', cities: ['Rancagua', 'San Fernando', 'Rengo', 'Pichilemu'] },
-  { name: 'Maule', cities: ['Talca', 'Curicó', 'Linares', 'Constitución'] },
-  { name: 'Ñuble', cities: ['Chillán', 'San Carlos', 'Coihueco'] },
-  { name: 'Biobío', cities: ['Concepción', 'Talcahuano', 'Los Ángeles', 'Coronel'] },
-  { name: 'La Araucanía', cities: ['Temuco', 'Villarrica', 'Pucón', 'Angol'] },
-  { name: 'Los Ríos', cities: ['Valdivia', 'La Unión', 'Panguipulli'] },
-  { name: 'Los Lagos', cities: ['Puerto Montt', 'Osorno', 'Castro', 'Ancud', 'Frutillar'] },
-  { name: 'Aysén del General Carlos Ibáñez del Campo', cities: ['Coyhaique', 'Puerto Aysén', 'Chile Chico'] },
-  { name: 'Magallanes y de la Antártica Chilena', cities: ['Punta Arenas', 'Puerto Natales', 'Porvenir'] }
+    { name: 'XV Arica y Parinacota', communes: ['Arica', 'Camarones', 'Putre', 'General Lagos'] },
+    { name: 'I Tarapacá', communes: ['Iquique', 'Alto Hospicio', 'Pozo Almonte', 'Camiña', 'Colchane', 'Huara', 'Pica'] },
+    { name: 'II Antofagasta', communes: ['Antofagasta', 'Mejillones', 'Sierra Gorda', 'Taltal', 'Calama', 'Ollagüe', 'San Pedro de Atacama', 'Tocopilla', 'María Elena'] },
+    { name: 'III Atacama', communes: ['Copiapó', 'Caldera', 'Tierra Amarilla', 'Chañaral', 'Diego de Almagro', 'Vallenar', 'Alto del Carmen', 'Freirina', 'Huasco'] },
+    { name: 'IV Coquimbo', communes: ['La Serena', 'Coquimbo', 'Andacollo', 'La Higuera', 'Paiguano', 'Vicuña', 'Illapel', 'Canela', 'Los Vilos', 'Salamanca', 'Ovalle', 'Combarbalá', 'Monte Patria', 'Punitaqui', 'Río Hurtado'] },
+    { name: 'V Valparaíso', communes: ['Valparaíso', 'Casablanca', 'Concón', 'Juan Fernández', 'Puchuncaví', 'Quintero', 'Viña del Mar', 'Isla de Pascua', 'Los Andes', 'Calle Larga', 'Rinconada', 'San Esteban', 'La Ligua', 'Cabildo', 'Papudo', 'Petorca', 'Zapallar', 'Quillota', 'Calera', 'Hijuelas', 'La Cruz', 'Nogales', 'San Antonio', 'Algarrobo', 'Cartagena', 'El Quisco', 'El Tabo', 'Santo Domingo', 'San Felipe', 'Catemu', 'Llaillay', 'Panquehue', 'Putaendo', 'Santa María', 'Quilpué', 'Limache', 'Olmué', 'Villa Alemana'] },
+    { name: 'XIII Metropolitana de Santiago', communes: ['Cerrillos', 'Cerro Navia', 'Conchalí', 'El Bosque', 'Estación Central', 'Huechuraba', 'Independencia', 'La Cisterna', 'La Florida', 'La Granja', 'La Pintana', 'La Reina', 'Las Condes', 'Lo Barnechea', 'Lo Espejo', 'Lo Prado', 'Macul', 'Maipú', 'Ñuñoa', 'Pedro Aguirre Cerda', 'Peñalolén', 'Providencia', 'Pudahuel', 'Quilicura', 'Quinta Normal', 'Recoleta', 'Renca', 'San Joaquín', 'San Miguel', 'San Ramón', 'Santiago', 'Vitacura', 'Padre Hurtado', 'Peñaflor', 'Talagante', 'El Monte', 'Isla de Maipo', 'Melipilla', 'Alhué', 'Curacaví', 'María Pinto', 'San Pedro', 'Tiltil', 'Colina', 'Lampa', 'San José de Maipo', 'Pirque', 'Puente Alto'] },
+    { name: 'VI Libertador General Bernardo O\'Higgins', communes: ['Rancagua', 'Codegua', 'Coinco', 'Coltauco', 'Doñihue', 'Graneros', 'Las Cabras', 'Machalí', 'Malloa', 'Mostazal', 'Olivar', 'Peumo', 'Pichidegua', 'Quinta de Tilcoco', 'Rengo', 'Requínoa', 'San Vicente', 'Pichilemu', 'La Estrella', 'Litueche', 'Marchihue', 'Navidad', 'Paredones', 'San Fernando', 'Chépica', 'Chimbarongo', 'Lolol', 'Nancagua', 'Palmilla', 'Peralillo', 'Placilla', 'Pumanque', 'Santa Cruz'] },
+    { name: 'VII Maule', communes: ['Talca', 'Constitución', 'Curepto', 'Empedrado', 'Maule', 'Pelarco', 'Pencahue', 'Río Claro', 'San Clemente', 'San Rafael', 'Cauquenes', 'Chanco', 'Pelluhue', 'Curicó', 'Hualañé', 'Licantén', 'Molina', 'Rauco', 'Romeral', 'Sagrada Familia', 'Teno', 'Vichuquén', 'Linares', 'Colbún', 'Longaví', 'Parral', 'Retiro', 'San Javier', 'Villa Alegre', 'Yerbas Buenas'] },
+    { name: 'XVI Ñuble', communes: ['Cobquecura', 'Coelemu', 'Ninhue', 'Portezuelo', 'Quirihue', 'Ránquil', 'Treguaco', 'Bulnes', 'Chillán Viejo', 'Chillán', 'El Carmen', 'Pemuco', 'Pinto', 'Quillón', 'San Ignacio', 'Yungay', 'Coihueco', 'Ñiquén', 'San Carlos', 'San Fabián', 'San Nicolás'] },
+    { name: 'VIII Biobío', communes: ['Concepción', 'Coronel', 'Chiguayante', 'Florida', 'Hualqui', 'Lota', 'Penco', 'San Pedro de la Paz', 'Santa Juana', 'Talcahuano', 'Tomé', 'Hualpén', 'Lebu', 'Arauco', 'Cañete', 'Contulmo', 'Curanilahue', 'Los Álamos', 'Tirúa', 'Los Ángeles', 'Antuco', 'Cabrero', 'Laja', 'Mulchén', 'Nacimiento', 'Negrete', 'Quilaco', 'Quilleco', 'San Rosendo', 'Santa Bárbara', 'Tucapel', 'Yumbel', 'Alto Biobío'] },
+    { name: 'IX La Araucanía', communes: ['Temuco', 'Carahue', 'Cunco', 'Curarrehue', 'Freire', 'Galvarino', 'Gorbea', 'Lautaro', 'Loncoche', 'Melipeuco', 'Nueva Imperial', 'Padre las Casas', 'Perquenco', 'Pitrufquén', 'Pucón', 'Saavedra', 'Teodoro Schmidt', 'Toltén', 'Vilcún', 'Villarrica', 'Cholchol', 'Angol', 'Collipulli', 'Curacautín', 'Ercilla', 'Lonquimay', 'Los Sauces', 'Lumaco', 'Purén', 'Renaico', 'Traiguén', 'Victoria'] },
+    { name: 'XIV Los Ríos', communes: ['Valdivia', 'Corral', 'Lanco', 'Los Lagos', 'Máfil', 'Mariquina', 'Paillaco', 'Panguipulli', 'La Unión', 'Futrono', 'Lago Ranco', 'Río Bueno'] },
+    { name: 'X Los Lagos', communes: ['Puerto Montt', 'Calbuco', 'Cochamó', 'Fresia', 'Frutillar', 'Los Muermos', 'Llanquihue', 'Maullín', 'Puerto Varas', 'Castro', 'Ancud', 'Chonchi', 'Curaco de Vélez', 'Dalcahue', 'Puqueldón', 'Queilén', 'Quellón', 'Quemchi', 'Quinchao', 'Osorno', 'Puerto Octay', 'Purranque', 'Puyehue', 'Río Negro', 'San Juan de la Costa', 'San Pablo', 'Chaitén', 'Futaleufú', 'Hualaihué', 'Palena'] },
+    { name: 'XI Aysén del General Carlos Ibáñez del Campo', communes: ['Coyhaique', 'Lago Verde', 'Aysén', 'Cisnes', 'Guaitecas', 'Cochrane', 'O\'Higgins', 'Tortel', 'Chile Chico', 'Río Ibáñez'] },
+    { name: 'XII Magallanes y de la Antártica Chilena', communes: ['Punta Arenas', 'Laguna Blanca', 'Río Verde', 'San Gregorio', 'Cabo de Hornos (Ex Navarino)', 'Antártica', 'Porvenir', 'Primavera', 'Timaukel', 'Natales', 'Torres del Paine'] }
 ];

@@ -32,13 +32,30 @@ import { shippingZones, chileanRegions } from '@/lib/constants';
 
 const FREE_SHIPPING_THRESHOLD = 49000;
 
+// RUT validation function
+const validateRut = (rut: string) => {
+  if (!/^[0-9]+-[0-9kK]{1}$/.test(rut)) return false;
+  const [body, dv] = rut.split('-');
+  let sum = 0;
+  let multiplier = 2;
+  for (let i = body.length - 1; i >= 0; i--) {
+    sum += parseInt(body[i], 10) * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+  const calculatedDv = 11 - (sum % 11);
+  const dvChar = calculatedDv === 11 ? '0' : calculatedDv === 10 ? 'k' : String(calculatedDv);
+  return dvChar === dv.toLowerCase();
+};
+
+
 const checkoutSchema = z.object({
-  name: z.string().min(2, 'El nombre es requerido'),
+  firstName: z.string().min(2, 'El nombre es requerido'),
+  lastName: z.string().min(2, 'El apellido es requerido'),
   email: z.string().email('Email inválido'),
-  rut: z.string().min(9, 'El RUT es requerido y debe ser válido (ej: 12345678-9)'),
+  rut: z.string().refine(validateRut, { message: 'El RUT ingresado no es válido.' }),
   phone: z.string().min(9, 'El celular debe tener 9 dígitos').max(9, 'El celular debe tener 9 dígitos'),
   region: z.string({ required_error: 'La región es requerida.' }),
-  city: z.string({ required_error: 'La ciudad es requerida.' }),
+  commune: z.string({ required_error: 'La comuna es requerida.' }),
   street: z.string().min(3, 'La calle es requerida.'),
   number: z.string().min(1, 'El número es requerido.'),
   apartment: z.string().optional(),
@@ -55,7 +72,7 @@ export default function CheckoutPage() {
   const [shippingCost, setShippingCost] = useState(0);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [availableCommunes, setAvailableCommunes] = useState<string[]>([]);
   
   const isFreeShipping = useMemo(() => cartTotal >= FREE_SHIPPING_THRESHOLD, [cartTotal]);
 
@@ -82,12 +99,13 @@ export default function CheckoutPage() {
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       rut: '',
       phone: '',
       region: undefined,
-      city: undefined,
+      commune: undefined,
       street: '',
       number: '',
       apartment: '',
@@ -99,10 +117,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (selectedRegion) {
         const regionData = chileanRegions.find(r => r.name === selectedRegion);
-        setAvailableCities(regionData ? regionData.cities : []);
-        form.setValue('city', undefined, { shouldValidate: true });
+        setAvailableCommunes(regionData ? regionData.communes : []);
+        form.setValue('commune', undefined, { shouldValidate: true });
     } else {
-        setAvailableCities([]);
+        setAvailableCommunes([]);
     }
   }, [selectedRegion, form]);
 
@@ -177,6 +195,7 @@ export default function CheckoutPage() {
         <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
           Finalizar Compra
         </h1>
+         <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">¡Estás a solo un paso de llevar la magia del sur a tu hogar! Gracias por elegirnos.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         <Card>
@@ -187,15 +206,20 @@ export default function CheckoutPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="space-y-6">
-                  <FormField control={form.control} name="name" render={({ field }) => (
-                    <FormItem><FormLabel>Nombre Completo</FormLabel><FormControl><Input placeholder="Juan Pérez" {...field} /></FormControl><FormMessage /></FormItem>
-                  )}/>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="firstName" render={({ field }) => (
+                      <FormItem><FormLabel>Nombres</FormLabel><FormControl><Input placeholder="Juan" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                     <FormField control={form.control} name="lastName" render={({ field }) => (
+                      <FormItem><FormLabel>Apellidos</FormLabel><FormControl><Input placeholder="Pérez" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="email" render={({ field }) => (
                       <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                     <FormField control={form.control} name="rut" render={({ field }) => (
-                      <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12345678-9" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                   </div>
                   <FormField control={form.control} name="phone" render={({ field }) => (
@@ -230,13 +254,13 @@ export default function CheckoutPage() {
                                     <FormMessage />
                                 </FormItem>
                             )}/>
-                             <FormField control={form.control} name="city" render={({ field }) => (
+                             <FormField control={form.control} name="commune" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Ciudad</FormLabel>
+                                    <FormLabel>Comuna</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegion}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una ciudad" /></SelectTrigger></FormControl>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una comuna" /></SelectTrigger></FormControl>
                                         <SelectContent>
-                                            {availableCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                            {availableCommunes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
