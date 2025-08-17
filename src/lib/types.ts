@@ -42,5 +42,6 @@ export interface Product {
     portfolio: string[];
     logo: string;
     favicon: string;
+    paymentMethods: string;
   }
   

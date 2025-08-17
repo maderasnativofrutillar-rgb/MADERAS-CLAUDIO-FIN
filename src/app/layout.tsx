@@ -28,7 +28,8 @@ async function getSiteImages(): Promise<SiteImages> {
             about: "",
             portfolio: [],
             logo: "",
-            favicon: ""
+            favicon: "",
+            paymentMethods: ""
         };
     }
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -6,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -14,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Carousel,
   CarouselContent,
@@ -22,10 +26,10 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { MiniProductCard } from '@/components/mini-product-card';
-import { Trash2, Loader2, Info } from 'lucide-react';
+import { Trash2, Loader2, Info, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Product } from '@/lib/types';
-import { collection, getDocs } from 'firebase/firestore';
+import { Product, SiteImages } from '@/lib/types';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { createFlowOrder } from '@/actions/flow-actions';
 import { shippingZones, chileanRegions } from '@/lib/constants';
@@ -65,6 +69,11 @@ const checkoutSchema = z.object({
   street: z.string().min(3, 'La calle es requerida.'),
   number: z.string().min(1, 'El número es requerido.'),
   apartment: z.string().optional(),
+  orderNotes: z.string().optional(),
+  acceptTerms: z.literal<boolean>(true, {
+    errorMap: () => ({ message: "Debes aceptar los términos y condiciones." }),
+  }),
+  newsletter: z.boolean().default(false).optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -79,6 +88,7 @@ export default function CheckoutPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [availableCommunes, setAvailableCommunes] = useState<string[]>([]);
+  const [paymentMethodsImage, setPaymentMethodsImage] = useState<string>("");
   
   const isFreeShipping = useMemo(() => cartTotal >= FREE_SHIPPING_THRESHOLD, [cartTotal]);
 
@@ -94,12 +104,21 @@ export default function CheckoutPage() {
 
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const querySnapshot = await getDocs(collection(db, "products"));
-      const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    const fetchInitialData = async () => {
+      // Fetch Products
+      const productsQuery = await getDocs(collection(db, "products"));
+      const productsData = productsQuery.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
       setAllProducts(productsData);
+
+      // Fetch Site Images (for payment methods)
+      const imagesDocRef = doc(db, "siteConfig", "images");
+      const imagesDocSnap = await getDoc(imagesDocRef);
+      if (imagesDocSnap.exists()) {
+          const imagesData = imagesDocSnap.data() as SiteImages;
+          setPaymentMethodsImage(imagesData.paymentMethods || "");
+      }
     };
-    fetchProducts();
+    fetchInitialData();
   }, []);
 
   const form = useForm<CheckoutFormValues>({
@@ -116,10 +135,14 @@ export default function CheckoutPage() {
       street: '',
       number: '',
       apartment: '',
+      orderNotes: '',
+      acceptTerms: false,
+      newsletter: false,
     },
   });
 
   const selectedRegion = form.watch('region');
+  const acceptTerms = form.watch('acceptTerms');
 
   useEffect(() => {
     if (selectedRegion) {
@@ -213,7 +236,7 @@ export default function CheckoutPage() {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form id="checkout-form" className="space-y-8">
                 <div className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <FormField control={form.control} name="firstName" render={({ field }) => (
@@ -287,13 +310,12 @@ export default function CheckoutPage() {
                          <FormField control={form.control} name="apartment" render={({ field }) => (
                             <FormItem><FormLabel>Departamento / Casa (Opcional)</FormLabel><FormControl><Input placeholder="Casa 2, Depto. 101..." {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
+                        <FormField control={form.control} name="orderNotes" render={({ field }) => (
+                            <FormItem><FormLabel>Notas del Pedido (Opcional)</FormLabel><FormControl><Textarea placeholder="Ej: Dejar en conserjería, llamar antes de llegar..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
                     </div>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full text-base" disabled={isProcessing}>
-                    {isProcessing && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                    {isProcessing ? 'Procesando...' : `Ir a Pagar ${formatPrice(finalTotal)}`}
-                </Button>
               </form>
             </Form>
           </CardContent>
@@ -368,6 +390,38 @@ export default function CheckoutPage() {
                         )}
                     </CardContent>
                   </Card>
+                  
+                  <div className="mt-6 space-y-4">
+                    <p className="text-xs text-muted-foreground">Tus datos personales se utilizarán para procesar tu pedido, mejorar tu experiencia en esta web y otros propósitos descritos en nuestra <Link href="/legal/privacidad" className="underline" target="_blank">política de privacidad</Link>.</p>
+                    <FormField control={form.control} name="acceptTerms" render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        <FormLabel>He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *</FormLabel>
+                      </FormItem>
+                    )} />
+                     <FormField control={form.control} name="newsletter" render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        <FormLabel>Quiero recibir noticias de productos, descuentos y lanzamientos.</FormLabel>
+                      </FormItem>
+                    )} />
+                    {form.formState.errors.acceptTerms && <FormMessage>{form.formState.errors.acceptTerms.message}</FormMessage>}
+                  </div>
+
+                  <div className="mt-6">
+                    {paymentMethodsImage && (
+                        <Image src={paymentMethodsImage} alt="Métodos de pago" width={300} height={100} className="mx-auto" data-ai-hint="payment methods" />
+                    )}
+                  </div>
+
+                   <Button form="checkout-form" type="submit" size="lg" className="w-full text-base mt-6" disabled={isProcessing || !acceptTerms}>
+                    {isProcessing ? (
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                        <CreditCard className="mr-2 h-5 w-5" />
+                    )}
+                    {isProcessing ? 'Procesando...' : `Pagar de forma segura ${formatPrice(finalTotal)}`}
+                </Button>
                 </div>
               </CardContent>
             </Card>
@@ -395,4 +449,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-    

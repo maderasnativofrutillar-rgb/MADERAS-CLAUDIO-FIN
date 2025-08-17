@@ -24,6 +24,7 @@ const siteImagesSchema = z.object({
   essence: z.any(),
   about: z.any(),
   portfolio: z.array(z.any()).optional(),
+  paymentMethods: z.any(),
 });
 
 type SiteImagesFormValues = z.infer<typeof siteImagesSchema>;
@@ -95,6 +96,7 @@ export function SiteImagesTab() {
           essence: data.essence,
           about: data.about,
           portfolio: data.portfolio,
+          paymentMethods: data.paymentMethods,
         });
       }
     } catch (error) {
@@ -127,6 +129,7 @@ export function SiteImagesTab() {
         const heroUrl = data.hero ? await uploadImage(data.hero, 'hero') : initialData?.hero;
         const essenceUrl = data.essence ? await uploadImage(data.essence, 'essence') : initialData?.essence;
         const aboutUrl = data.about ? await uploadImage(data.about, 'about') : initialData?.about;
+        const paymentMethodsUrl = data.paymentMethods ? await uploadImage(data.paymentMethods, 'paymentMethods') : initialData?.paymentMethods;
 
         // For portfolio, we need to handle a mix of existing URLs and new files
         let portfolioUrls: string[] = [];
@@ -143,6 +146,7 @@ export function SiteImagesTab() {
             essence: essenceUrl || '',
             about: aboutUrl || '',
             portfolio: portfolioUrls,
+            paymentMethods: paymentMethodsUrl || '',
         };
 
         await setDoc(doc(db, "siteConfig", "images"), siteData);
@@ -164,6 +168,7 @@ export function SiteImagesTab() {
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-24 w-full" />
           </div>
       );
   }
@@ -176,6 +181,7 @@ export function SiteImagesTab() {
             <ImageUploadField name="hero" label="Imagen Hero (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.hero || null} />
             <ImageUploadField name="essence" label="Imagen 'Nuestra Esencia' (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.essence || null} />
             <ImageUploadField name="about" label="Imagen 'Nosotros'" setValue={setValue} currentImageUrl={initialData?.about || null} />
+            <ImageUploadField name="paymentMethods" label="Imagen de Métodos de Pago (Checkout y Footer)" setValue={setValue} currentImageUrl={initialData?.paymentMethods || null} />
             
             {/* Portfolio Management */}
             <FormField

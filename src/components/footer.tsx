@@ -1,13 +1,41 @@
+
 import Link from "next/link";
-import { TreePine, Facebook, Instagram, Twitter, Phone, Mail } from "lucide-react";
+import { TreePine, Phone } from "lucide-react";
 import { categories } from "@/lib/constants";
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { SiteImages } from '@/lib/types';
+import Image from 'next/image';
+
 
 function slugify(text: string) {
     if (typeof text !== 'string') return '';
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 }
 
-export function SiteFooter() {
+async function getSiteImages(): Promise<SiteImages> {
+    const docRef = doc(db, "siteConfig", "images");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return docSnap.data() as SiteImages;
+    } else {
+        return {
+            hero: "",
+            essence: "",
+            about: "",
+            portfolio: [],
+            logo: "",
+            favicon: "",
+            paymentMethods: ""
+        };
+    }
+}
+
+
+export async function SiteFooter() {
+  const siteImages = await getSiteImages();
+  
   return (
     <>
       <footer className="border-t bg-secondary/30">
@@ -21,6 +49,11 @@ export function SiteFooter() {
               <p className="text-sm text-muted-foreground">
                 Artesanía en madera que cuenta una historia. Desde Frutillar, Chile, al mundo.
               </p>
+               {siteImages.paymentMethods && (
+                <div className="pt-4">
+                  <Image src={siteImages.paymentMethods} alt="Métodos de pago" width={255} height={50} style={{ objectFit: 'contain' }} />
+                </div>
+              )}
             </div>
             <div>
               <h4 className="font-headline font-semibold mb-4">Navegación</h4>
