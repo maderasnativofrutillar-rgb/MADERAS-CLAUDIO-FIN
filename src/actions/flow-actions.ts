@@ -15,11 +15,6 @@ interface FlowPaymentResponse {
     flowOrder: number;
 }
 
-interface FlowErrorResponse {
-    code: number;
-    message: string;
-}
-
 // URL de producción, ya está configurada correctamente.
 const FLOW_API_URL = 'https://www.flow.cl/api';
 
@@ -67,9 +62,9 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
     
     const signature = generateSignature(paramsForSignature);
 
-    // Construir el cuerpo de la solicitud para el POST
+    // Construir el cuerpo de la solicitud para el POST usando URLSearchParams
     const finalParams = new URLSearchParams();
-    // Añadir todos los parámetros firmados
+    // Añadir todos los parámetros firmados (se deben volver a ordenar para el cuerpo)
     Object.keys(paramsForSignature).sort().forEach(key => {
       finalParams.append(key, paramsForSignature[key]);
     });
@@ -78,7 +73,6 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
 
     // --- LOGS DE DEPURACIÓN (MUY ÚTILES) ---
     console.log("------------------------------------------");
-    console.log("Parámetros para la firma:", paramsForSignature);
     const toSignString = Object.keys(paramsForSignature).sort().map(key => `${key}${paramsForSignature[key]}`).join('');
     console.log("Cadena a firmar:", toSignString);
     console.log("Firma generada:", signature);
