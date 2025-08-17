@@ -85,9 +85,9 @@ export default async function Home() {
             </div>
             <div className="absolute bottom-10 flex flex-col items-center gap-2">
                 <p className="text-sm uppercase tracking-wider">Síguenos en nuestras redes</p>
-                <div className="flex items-center gap-6 text-lg font-semibold">
-                    <Link href="#" className="text-pink-400 hover:text-pink-300 transition-colors">INSTAGRAM</Link>
-                    <Link href="#" className="text-cyan-400 hover:text-cyan-300 transition-colors">TIKTOK</Link>
+                <div className="flex items-center gap-6 text-lg">
+                    <Link href="#" className="text-pink-400 font-bold hover:text-white transition-colors">INSTAGRAM</Link>
+                    <Link href="#" className="text-cyan-400 font-bold hover:text-white transition-colors">TIKTOK</Link>
                 </div>
             </div>
           </div>
