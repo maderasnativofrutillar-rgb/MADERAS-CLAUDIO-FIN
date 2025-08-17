@@ -1,3 +1,4 @@
+
 'use server';
 
 import crypto from 'crypto';
@@ -60,7 +61,7 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         email: paymentData.email,
         urlConfirmation: `${baseUrl}/api/flow/confirm`,
         urlReturn: `${baseUrl}/checkout/result`,
-        paymentMethod: 9, // Todos los medios de pago
+        paymentMethod: '9', // Todos los medios de pago
     };
     
     const signature = generateSignature(paramsForSignature);
