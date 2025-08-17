@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -8,7 +7,7 @@ import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -23,28 +22,26 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { MiniProductCard } from '@/components/mini-product-card';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Product } from '@/lib/types';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { createFlowOrder } from '@/actions/flow-actions';
+import { shippingZones, chileanRegions } from '@/lib/constants';
 
-const regions = {
-  "sur-extremo": { name: "Zona Sur Extrema (Aysén, Magallanes)", price: 10000 },
-  "norte-extremo": { name: "Zona Norte Extrema (Arica, Tarapacá, Antofagasta)", price: 10000 },
-  "resto": { name: "Resto del país", price: 5600 },
-};
+const FREE_SHIPPING_THRESHOLD = 49000;
 
 const checkoutSchema = z.object({
   name: z.string().min(2, 'El nombre es requerido'),
   email: z.string().email('Email inválido'),
-  rut: z.string().min(9, 'El RUT es requerido y debe ser válido'),
-  phone: z.string().min(9, 'El celular es requerido'),
-  address: z.string().min(5, 'La dirección es requerida'),
-  city: z.string().min(2, 'La ciudad es requerida'),
-  country: z.string().min(2, 'El país es requerido'),
-  region: z.string({ required_error: 'Debes seleccionar una región para el envío.' }),
+  rut: z.string().min(9, 'El RUT es requerido y debe ser válido (ej: 12345678-9)'),
+  phone: z.string().min(9, 'El celular debe tener 9 dígitos').max(9, 'El celular debe tener 9 dígitos'),
+  region: z.string({ required_error: 'La región es requerida.' }),
+  city: z.string({ required_error: 'La ciudad es requerida.' }),
+  street: z.string().min(3, 'La calle es requerida.'),
+  number: z.string().min(1, 'El número es requerido.'),
+  apartment: z.string().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -53,12 +50,25 @@ export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
+  
+  const [shippingZone, setShippingZone] = useState('');
   const [shippingCost, setShippingCost] = useState(0);
-  const [couponCode, setCouponCode] = useState('');
-  const [discount, setDiscount] = useState(0);
-  const [couponApplied, setCouponApplied] = useState(false);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  
+  const isFreeShipping = useMemo(() => cartTotal >= FREE_SHIPPING_THRESHOLD, [cartTotal]);
+
+  useEffect(() => {
+    if (isFreeShipping) {
+      setShippingCost(0);
+      setShippingZone('free');
+    } else {
+      const cost = shippingZones[shippingZone as keyof typeof shippingZones]?.price ?? 0;
+      setShippingCost(cost);
+    }
+  }, [isFreeShipping, shippingZone]);
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -76,32 +86,31 @@ export default function CheckoutPage() {
       email: '',
       rut: '',
       phone: '',
-      address: '',
-      city: '',
-      country: 'Chile',
+      region: undefined,
+      city: undefined,
+      street: '',
+      number: '',
+      apartment: '',
     },
   });
 
-  const handleRegionChange = (regionKey: string) => {
-    const cost = regions[regionKey as keyof typeof regions]?.price ?? 0;
-    setShippingCost(cost);
+  const selectedRegion = form.watch('region');
+
+  useEffect(() => {
+    if (selectedRegion) {
+        const regionData = chileanRegions.find(r => r.name === selectedRegion);
+        setAvailableCities(regionData ? regionData.cities : []);
+        form.setValue('city', undefined, { shouldValidate: true });
+    } else {
+        setAvailableCities([]);
+    }
+  }, [selectedRegion, form]);
+
+  const handleShippingZoneChange = (zoneKey: string) => {
+    setShippingZone(zoneKey);
   };
   
-  const handleApplyCoupon = () => {
-    // Mock coupon logic
-    if (couponCode.toUpperCase() === 'NATIVO10') {
-      const discountAmount = cartTotal * 0.10;
-      setDiscount(discountAmount);
-      setCouponApplied(true);
-      toast({ title: 'Cupón Aplicado', description: 'Se ha aplicado un 10% de descuento.' });
-    } else {
-      toast({ title: 'Cupón Inválido', description: 'El código de cupón no es válido.', variant: 'destructive' });
-      setDiscount(0);
-      setCouponApplied(false);
-    }
-  };
-
-  const finalTotal = cartTotal - discount + shippingCost;
+  const finalTotal = cartTotal + shippingCost;
 
   const suggestedProducts = useMemo(() => {
     if (allProducts.length === 0) return [];
@@ -114,6 +123,11 @@ export default function CheckoutPage() {
   };
 
   const onSubmit = async (data: CheckoutFormValues) => {
+    if (!isFreeShipping && shippingCost === 0) {
+        toast({ title: 'Falta información', description: 'Por favor, selecciona una zona de envío.', variant: 'destructive'});
+        return;
+    }
+
     setIsProcessing(true);
     toast({
         title: 'Preparando tu pago...',
@@ -130,7 +144,6 @@ export default function CheckoutPage() {
         const result = await createFlowOrder(paymentData);
 
         if ('url' in result && result.url && result.token) {
-            // Redirect to Flow's payment page
             window.location.href = `${result.url}?token=${result.token}`;
         } else {
             throw new Error(result.message || 'Error desconocido al crear la orden de pago.');
@@ -168,62 +181,84 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Información de Contacto y Envío</CardTitle>
+            <CardTitle className="font-headline">1. Información de Contacto</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem><FormLabel>Nombre Completo</FormLabel><FormControl><Input placeholder="Juan Pérez" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-                 <div className="grid sm:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="email" render={({ field }) => (
-                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <div className="space-y-6">
+                  <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem><FormLabel>Nombre Completo</FormLabel><FormControl><Input placeholder="Juan Pérez" {...field} /></FormControl><FormMessage /></FormItem>
                   )}/>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                      <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="rut" render={({ field }) => (
+                      <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                  </div>
                   <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem><FormLabel>Celular</FormLabel><FormControl><Input type="tel" placeholder="+56 9 1234 5678" {...field} /></FormControl><FormMessage /></FormItem>
-                  )}/>
+                      <FormItem>
+                          <FormLabel>Celular</FormLabel>
+                          <div className="flex items-center">
+                              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-secondary text-sm h-10">+56</span>
+                              <FormControl>
+                                  <Input type="tel" placeholder="9 1234 5678" {...field} className="rounded-l-none" />
+                              </FormControl>
+                          </div>
+                          <FormMessage />
+                      </FormItem>
+                  )} />
                 </div>
-                 <FormField control={form.control} name="rut" render={({ field }) => (
-                  <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-                <FormField control={form.control} name="address" render={({ field }) => (
-                  <FormItem><FormLabel>Dirección</FormLabel><FormControl><Input placeholder="Av. Siempre Viva 123" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="city" render={({ field }) => (
-                    <FormItem><FormLabel>Ciudad</FormLabel><FormControl><Input placeholder="Frutillar" {...field} /></FormControl><FormMessage /></FormItem>
-                  )}/>
-                   <FormField control={form.control} name="region" render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Región de Envío</FormLabel>
-                       <Controller
-                        control={form.control}
-                        name="region"
-                        render={({ field }) => (
-                            <Select onValueChange={(value) => {
-                                field.onChange(value);
-                                handleRegionChange(value);
-                            }} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona una región" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {Object.entries(regions).map(([key, {name}]) => (
-                                        <SelectItem key={key} value={key}>{name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                         )}
-                        />
-                      <FormMessage />
-                    </FormItem>
-                  )}/>
+                
+                <Separator />
+
+                <div>
+                    <h3 className="font-headline text-lg font-semibold mb-4">2. Dirección de Envío</h3>
+                    <div className="space-y-6">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                             <FormField control={form.control} name="region" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Región</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una región" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            {chileanRegions.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                             <FormField control={form.control} name="city" render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Ciudad</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedRegion}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una ciudad" /></SelectTrigger></FormControl>
+                                        <SelectContent>
+                                            {availableCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                        </div>
+                        <div className="grid sm:grid-cols-3 gap-4">
+                            <FormField control={form.control} name="street" render={({ field }) => (
+                                <FormItem className="sm:col-span-2"><FormLabel>Calle</FormLabel><FormControl><Input placeholder="Av. Siempre Viva" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                             <FormField control={form.control} name="number" render={({ field }) => (
+                                <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                        </div>
+                         <FormField control={form.control} name="apartment" render={({ field }) => (
+                            <FormItem><FormLabel>Departamento / Casa (Opcional)</FormLabel><FormControl><Input placeholder="Casa 2, Depto. 101..." {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                    </div>
                 </div>
-                <Button type="submit" size="lg" className="w-full" disabled={isProcessing || cartItems.length === 0 || shippingCost === 0}>
-                    {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+
+                <Button type="submit" size="lg" className="w-full text-base" disabled={isProcessing}>
+                    {isProcessing && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     {isProcessing ? 'Procesando...' : `Ir a Pagar ${formatPrice(finalTotal)}`}
                 </Button>
               </form>
@@ -260,41 +295,46 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                   <Separator />
-                  <div className="flex gap-2">
-                      <Input 
-                        placeholder="Código de cupón" 
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        className="flex-grow"
-                        disabled={couponApplied}
-                      />
-                      <Button onClick={handleApplyCoupon} disabled={couponApplied || !couponCode}>Aplicar</Button>
-                  </div>
-                  {couponApplied && (
-                    <Alert className="bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700">
-                      <AlertTitle className='font-headline text-green-800 dark:text-green-200'>¡Cupón aplicado!</AlertTitle>
-                      <AlertDescription className='text-green-700 dark:text-green-300'>Has obtenido un 10% de descuento en tu compra.</AlertDescription>
-                    </Alert>
-                  )}
                    <div className="flex justify-between text-muted-foreground">
                     <p>Subtotal</p>
                     <p>{formatPrice(cartTotal)}</p>
                   </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-muted-foreground text-green-600 dark:text-green-400">
-                        <p>Descuento</p>
-                        <p>-{formatPrice(discount)}</p>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-muted-foreground">
+                
+                   <div className="flex justify-between text-muted-foreground">
                     <p>Envío</p>
-                    <p>{shippingCost > 0 ? formatPrice(shippingCost) : 'Selecciona una región'}</p>
+                    <p>{isFreeShipping ? <span className="font-bold text-green-600">GRATIS</span> : (shippingCost > 0 ? formatPrice(shippingCost) : 'Selecciona una zona')}</p>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <p>Total</p>
                     <p>{formatPrice(finalTotal)}</p>
                   </div>
+
+                  <Card className="mt-4">
+                    <CardHeader className="p-4">
+                        <CardTitle className="text-base font-headline">3. Costo de Envío</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                        {isFreeShipping ? (
+                            <Alert className="border-green-300 bg-green-50 text-green-800">
+                                <Info className="h-4 w-4 !text-green-600" />
+                                <AlertTitle>¡Felicitaciones!</AlertTitle>
+                                <AlertDescription>Tu compra califica para envío gratuito.</AlertDescription>
+                            </Alert>
+                        ) : (
+                             <Select onValueChange={handleShippingZoneChange} disabled={isFreeShipping}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona tu zona de envío" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(shippingZones).map(([key, {name, price}]) => (
+                                        <SelectItem key={key} value={key}>{name} ({formatPrice(price)})</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>

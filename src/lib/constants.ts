@@ -172,3 +172,28 @@ export const categories = [
     "Tablas de Picoteo",
     "Despedida de Soltera",
 ];
+
+export const shippingZones = {
+  "sur-extremo": { name: "Zona Sur Extrema (Aysén, Magallanes)", price: 10000 },
+  "norte-extremo": { name: "Zona Norte Extrema (Arica, Tarapacá, Antofagasta)", price: 10000 },
+  "resto": { name: "Resto del país", price: 5600 },
+};
+
+export const chileanRegions = [
+  { name: 'Arica y Parinacota', cities: ['Arica', 'Putre'] },
+  { name: 'Tarapacá', cities: ['Iquique', 'Alto Hospicio', 'Pozo Almonte'] },
+  { name: 'Antofagasta', cities: ['Antofagasta', 'Calama', 'Tocopilla', 'Mejillones'] },
+  { name: 'Atacama', cities: ['Copiapó', 'Vallenar', 'Chañaral', 'Caldera'] },
+  { name: 'Coquimbo', cities: ['La Serena', 'Coquimbo', 'Ovalle', 'Illapel'] },
+  { name: 'Valparaíso', cities: ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'San Antonio', 'Los Andes'] },
+  { name: 'Metropolitana de Santiago', cities: ['Santiago', 'Puente Alto', 'Maipú', 'La Florida', 'Las Condes', 'Providencia'] },
+  { name: 'Libertador General Bernardo O\'Higgins', cities: ['Rancagua', 'San Fernando', 'Rengo', 'Pichilemu'] },
+  { name: 'Maule', cities: ['Talca', 'Curicó', 'Linares', 'Constitución'] },
+  { name: 'Ñuble', cities: ['Chillán', 'San Carlos', 'Coihueco'] },
+  { name: 'Biobío', cities: ['Concepción', 'Talcahuano', 'Los Ángeles', 'Coronel'] },
+  { name: 'La Araucanía', cities: ['Temuco', 'Villarrica', 'Pucón', 'Angol'] },
+  { name: 'Los Ríos', cities: ['Valdivia', 'La Unión', 'Panguipulli'] },
+  { name: 'Los Lagos', cities: ['Puerto Montt', 'Osorno', 'Castro', 'Ancud', 'Frutillar'] },
+  { name: 'Aysén del General Carlos Ibáñez del Campo', cities: ['Coyhaique', 'Puerto Aysén', 'Chile Chico'] },
+  { name: 'Magallanes y de la Antártica Chilena', cities: ['Punta Arenas', 'Puerto Natales', 'Porvenir'] }
+];
