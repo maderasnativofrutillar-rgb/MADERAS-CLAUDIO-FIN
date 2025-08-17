@@ -194,8 +194,8 @@ export default function CheckoutPage() {
 
         const result = await createFlowOrder(paymentData);
 
-        if ('url' in result && result.url && result.token) {
-            window.location.href = `${result.url}?token=${result.token}`;
+        if ('url' in result && result.url) {
+            window.location.href = result.url;
         } else {
             throw new Error(result.message || 'Error desconocido al crear la orden de pago.');
         }
@@ -231,94 +231,120 @@ export default function CheckoutPage() {
         </h1>
          <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">¡Estás a solo un paso de llevar la magia del sur a tu hogar! Gracias por elegirnos.</p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">1. Información de Contacto y Envío</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form id="checkout-form" className="space-y-8">
-                <div className="space-y-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="firstName" render={({ field }) => (
-                        <FormItem><FormLabel>Nombres</FormLabel><FormControl><Input placeholder="Juan" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                        <FormField control={form.control} name="lastName" render={({ field }) => (
-                        <FormItem><FormLabel>Apellidos</FormLabel><FormControl><Input placeholder="Pérez" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    </div>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="email" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    <FormField control={form.control} name="rut" render={({ field }) => (
-                        <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    </div>
-                    <FormField control={form.control} name="phone" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Celular</FormLabel>
-                            <div className="flex items-center">
-                                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-secondary text-sm h-10">+56</span>
-                                <FormControl>
-                                    <Input type="tel" placeholder="9 1234 5678" {...field} className="rounded-l-none" />
-                                </FormControl>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                </div>
-                
-                <Separator />
-
-                <div>
-                    <h3 className="font-headline text-lg font-semibold mb-4">2. Dirección de Envío</h3>
+      <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div className="space-y-8">
+                <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">1. Información de Contacto y Envío</CardTitle>
+                </CardHeader>
+                <CardContent>
                     <div className="space-y-6">
                         <div className="grid sm:grid-cols-2 gap-4">
-                                <FormField control={form.control} name="region" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Región</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una región" /></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            {chileanRegions.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}/>
-                                <FormField control={form.control} name="commune" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Comuna</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={!selectedRegion}>
-                                        <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una comuna" /></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            {availableCommunes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}/>
-                        </div>
-                        <div className="grid sm:grid-cols-3 gap-4">
-                            <FormField control={form.control} name="street" render={({ field }) => (
-                                <FormItem className="sm:col-span-2"><FormLabel>Calle</FormLabel><FormControl><Input placeholder="Av. Siempre Viva" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                                <FormField control={form.control} name="number" render={({ field }) => (
-                                <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                        </div>
-                            <FormField control={form.control} name="apartment" render={({ field }) => (
-                            <FormItem><FormLabel>Departamento / Casa (Opcional)</FormLabel><FormControl><Input placeholder="Casa 2, Depto. 101..." {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormField control={form.control} name="firstName" render={({ field }) => (
+                            <FormItem><FormLabel>Nombres</FormLabel><FormControl><Input placeholder="Juan" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
-                        <FormField control={form.control} name="orderNotes" render={({ field }) => (
-                            <FormItem><FormLabel>Notas del Pedido (Opcional)</FormLabel><FormControl><Textarea placeholder="Ej: Dejar en conserjería, llamar antes de llegar..." {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormField control={form.control} name="lastName" render={({ field }) => (
+                            <FormItem><FormLabel>Apellidos</FormLabel><FormControl><Input placeholder="Pérez" {...field} /></FormControl><FormMessage /></FormItem>
                         )}/>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="email" render={({ field }) => (
+                            <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="juan.perez@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                        <FormField control={form.control} name="rut" render={({ field }) => (
+                            <FormItem><FormLabel>RUT</FormLabel><FormControl><Input placeholder="12.345.678-9" {...field} /></FormControl><FormMessage /></FormItem>
+                        )}/>
+                        </div>
+                        <FormField control={form.control} name="phone" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Celular</FormLabel>
+                                <div className="flex items-center">
+                                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-secondary text-sm h-10">+56</span>
+                                    <FormControl>
+                                        <Input type="tel" placeholder="9 1234 5678" {...field} className="rounded-l-none" />
+                                    </FormControl>
+                                </div>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
                     </div>
-                </div>
-                </form>
-            </CardContent>
-            </Card>
+                    
+                    <Separator className="my-8" />
+
+                    <div>
+                        <h3 className="font-headline text-lg font-semibold mb-4">2. Dirección de Envío</h3>
+                        <div className="space-y-6">
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="region" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Región</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una región" /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                {chileanRegions.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                    <FormField control={form.control} name="commune" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Comuna</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value || ''} disabled={!selectedRegion}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una comuna" /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                {availableCommunes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                            </div>
+                            <div className="grid sm:grid-cols-3 gap-4">
+                                <FormField control={form.control} name="street" render={({ field }) => (
+                                    <FormItem className="sm:col-span-2"><FormLabel>Calle</FormLabel><FormControl><Input placeholder="Av. Siempre Viva" {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                                    <FormField control={form.control} name="number" render={({ field }) => (
+                                    <FormItem><FormLabel>Número</FormLabel><FormControl><Input placeholder="123" {...field} /></FormControl><FormMessage /></FormItem>
+                                )}/>
+                            </div>
+                                <FormField control={form.control} name="apartment" render={({ field }) => (
+                                <FormItem><FormLabel>Departamento / Casa (Opcional)</FormLabel><FormControl><Input placeholder="Casa 2, Depto. 101..." {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                            <FormField control={form.control} name="orderNotes" render={({ field }) => (
+                                <FormItem><FormLabel>Notas del Pedido (Opcional)</FormLabel><FormControl><Textarea placeholder="Ej: Dejar en conserjería, llamar antes de llegar..." {...field} /></FormControl><FormMessage /></FormItem>
+                            )}/>
+                        </div>
+                    </div>
+                </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">3. Costo de Envío</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {isFreeShipping ? (
+                            <Alert className="border-green-300 bg-green-50 text-green-800">
+                                <Info className="h-4 w-4 !text-green-600" />
+                                <AlertTitle>¡Felicitaciones!</AlertTitle>
+                                <AlertDescription>Tu compra califica para envío gratuito.</AlertDescription>
+                            </Alert>
+                        ) : (
+                                <Select onValueChange={handleShippingZoneChange} disabled={isFreeShipping}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona tu zona de envío" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(shippingZones).map(([key, {name, price}]) => (
+                                        <SelectItem key={key} value={key}>{name} ({formatPrice(price)})</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         
         <div className="space-y-8">
             <Card className="bg-secondary/50">
@@ -367,32 +393,6 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">3. Costo de Envío</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {isFreeShipping ? (
-                        <Alert className="border-green-300 bg-green-50 text-green-800">
-                            <Info className="h-4 w-4 !text-green-600" />
-                            <AlertTitle>¡Felicitaciones!</AlertTitle>
-                            <AlertDescription>Tu compra califica para envío gratuito.</AlertDescription>
-                        </Alert>
-                    ) : (
-                            <Select onValueChange={handleShippingZoneChange} disabled={isFreeShipping}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecciona tu zona de envío" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Object.entries(shippingZones).map(([key, {name, price}]) => (
-                                    <SelectItem key={key} value={key}>{name} ({formatPrice(price)})</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                </CardContent>
-            </Card>
-            
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">4. Pago Seguro</CardTitle>
@@ -445,7 +445,7 @@ export default function CheckoutPage() {
                         <Image src={paymentMethodsImage} alt="Métodos de pago" width={300} height={100} className="mx-auto" data-ai-hint="payment methods" />
                     )}
 
-                    <Button form="checkout-form" type="submit" size="lg" className="w-full text-base" disabled={isProcessing || !acceptTerms}>
+                    <Button type="submit" size="lg" className="w-full text-base" disabled={isProcessing || !acceptTerms}>
                         {isProcessing ? (
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         ) : (
@@ -476,7 +476,7 @@ export default function CheckoutPage() {
             </div>
         </div>
 
-      </div>
+      </form>
         </Form>
     </div>
   );

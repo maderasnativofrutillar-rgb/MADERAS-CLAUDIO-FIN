@@ -84,7 +84,7 @@ export async function createFlowOrder(paymentData: FlowPaymentRequest): Promise<
         }
 
         return {
-            url,
+            url: `${url}?token=${token}`,
             token,
             flowOrder: Number(flowOrder),
         };
