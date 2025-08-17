@@ -101,7 +101,7 @@ export default function CheckoutPage() {
       const cost = shippingZones[shippingZone as keyof typeof shippingZones]?.price ?? 0;
       setShippingCost(cost);
     }
-  }, [isFreeShipping, shippingZone]);
+  }, [isFreeShipping, shippingZone, cartTotal]);
 
 
   useEffect(() => {
@@ -412,9 +412,7 @@ export default function CheckoutPage() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
+                            <FormLabel>
                                He leído y estoy de acuerdo con los <Link href="/legal/terminos" className="underline" target="_blank">términos y condiciones</Link> de la web *
                             </FormLabel>
                             <FormMessage />
@@ -435,9 +433,7 @@ export default function CheckoutPage() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
+                            <FormLabel>
                                Quiero recibir noticias de productos, descuentos y lanzamientos.
                             </FormLabel>
                           </div>

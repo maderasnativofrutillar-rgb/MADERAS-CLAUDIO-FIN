@@ -18,7 +18,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const { addToCart } = useCart();
+  const { addToCart, getPriceForQuantity } = useCart();
   
   const allImages = [product.image, ...(product.images || [])].filter(Boolean) as string[];
   const [currentImage, setCurrentImage] = useState(product.image);
@@ -48,7 +48,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   };
   
   const hasOffer = product.offerPercentage && product.offerPercentage > 0;
-  const discountedPrice = hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price;
+  const displayPrice = getPriceForQuantity(product, 1);
 
   return (
     <Card 
@@ -97,7 +97,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             {hasOffer && (
                 <p className="text-sm text-muted-foreground line-through">{formatPrice(product.price)}</p>
             )}
-            <p className={`text-lg font-bold ${hasOffer ? 'text-green-600' : 'text-primary'}`}>{formatPrice(discountedPrice)}</p>
+            <p className={`text-lg font-bold ${hasOffer ? 'text-green-600' : 'text-primary'}`}>{formatPrice(displayPrice)}</p>
         </div>
         <Button onClick={() => addToCart(product)} className="group/button relative w-28 h-10 overflow-hidden bg-primary hover:bg-primary/90 text-primary-foreground">
             <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover/button:-translate-y-full">Agregar</span>
