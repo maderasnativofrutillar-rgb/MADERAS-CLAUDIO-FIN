@@ -32,24 +32,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Recalculate prices on cart changes in case wholesale prices should apply
-    const updatedCart = cartItems.map(item => {
-        const price = getPriceForQuantity(item, item.quantity);
-        return { ...item, price };
-    });
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    // This effect ensures the cart is always persisted to localStorage on any change.
+    localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
   const getPriceForQuantity = (product: Product, quantity: number) => {
-    // 1. Check for wholesale prices first
-    if (quantity >= 9 && product.wholesalePrice9 && product.wholesalePrice9 > 0) {
-        return product.wholesalePrice9;
+    // 1. Check for bundle prices first
+    if (quantity >= 3 && product.priceFor3 && product.priceFor3 > 0) {
+        return product.priceFor3 / 3; // Price per item in bundle
     }
-    if (quantity >= 6 && product.wholesalePrice6 && product.wholesalePrice6 > 0) {
-        return product.wholesalePrice6;
+    if (quantity >= 2 && product.priceFor2 && product.priceFor2 > 0) {
+        return product.priceFor2 / 2; // Price per item in bundle
     }
-    if (quantity >= 3 && product.wholesalePrice3 && product.wholesalePrice3 > 0) {
-        return product.wholesalePrice3;
+     if (quantity >= 1 && product.priceFor1 && product.priceFor1 > 0) {
+        return product.priceFor1;
     }
     
     // 2. Check for percentage offer
@@ -65,20 +61,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       
+      let newItems;
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantityToAdd;
-        const newPrice = getPriceForQuantity(product, newQuantity);
-        return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: newQuantity, price: newPrice } : item
+        newItems = prevItems.map((item) =>
+          item.id === product.id ? { ...item, quantity: newQuantity } : item
         );
       } else {
-        const price = getPriceForQuantity(product, quantityToAdd);
-        return [...prevItems, { ...product, quantity: quantityToAdd, price }];
+        newItems = [...prevItems, { ...product, quantity: quantityToAdd }];
       }
+
+      // After updating quantities, recalculate prices for all items
+      return newItems.map(item => ({
+        ...item,
+        price: getPriceForQuantity(item, item.quantity)
+      }));
     });
+
      toast({
        title: "Producto añadido",
-       description: `${product.name} ha sido añadido al carrito.`,
+       description: `${quantityToAdd} x ${product.name} ha(n) sido añadido(s) al carrito.`,
      })
   };
 
@@ -99,15 +101,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart(productId);
       return;
     }
-    setCartItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.id === productId) {
-           const newPrice = getPriceForQuantity(item, quantity);
-           return { ...item, quantity, price: newPrice };
-        }
-        return item;
-      })
-    );
+    setCartItems((prevItems) => {
+        const newItems = prevItems.map((item) => {
+            if (item.id === productId) {
+               return { ...item, quantity };
+            }
+            return item;
+        });
+
+        // After updating quantities, recalculate prices for all items
+        return newItems.map(item => ({
+            ...item,
+            price: getPriceForQuantity(item, item.quantity)
+        }));
+    });
   };
 
   const clearCart = () => {

@@ -17,6 +17,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { CarouselWithProgress } from '@/components/product-carousel-progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 async function getProduct(id: string): Promise<Product | null> {
     const docRef = doc(db, "products", id);
@@ -36,7 +38,7 @@ async function getProduct(id: string): Promise<Product | null> {
 
 async function getRelatedProducts(currentProductId: string): Promise<Product[]> {
     const productsRef = collection(db, "products");
-    const q = query(productsRef, limit(8)); // Fetch more to have better random results
+    const q = query(productsRef, limit(8)); 
     const querySnapshot = await getDocs(q);
     const allProducts = querySnapshot.docs.map(doc => {
        const data = doc.data();
@@ -47,24 +49,23 @@ async function getRelatedProducts(currentProductId: string): Promise<Product[]> 
         } as Product;
     });
 
-    // Filter out the current product and shuffle the rest
     return allProducts
         .filter(p => p.id !== currentProductId)
         .sort(() => 0.5 - Math.random())
-        .slice(0, 8); // Return up to 8 for the carousel
+        .slice(0, 8);
 }
 
 function ProductDetailContent() {
   const params = useParams();
   const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { addToCart, getPriceForQuantity } = useCart();
+  const { addToCart } = useCart();
   
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [selectedQuantity, setSelectedQuantity] = useState('1');
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
 
@@ -73,7 +74,7 @@ function ProductDetailContent() {
 
     const fetchProductData = async () => {
         setLoading(true);
-        setQuantity(1); // Reset quantity on product change
+        setSelectedQuantity('1'); 
         const productData = await getProduct(id);
         if (productData) {
             setProduct(productData);
@@ -91,13 +92,13 @@ function ProductDetailContent() {
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart(product, quantity);
+      addToCart(product, parseInt(selectedQuantity));
     }
   };
 
   const handleBuyNow = () => {
       if (product) {
-          addToCart(product, quantity);
+          addToCart(product, parseInt(selectedQuantity));
           router.push('/checkout');
       }
   };
@@ -146,17 +147,34 @@ function ProductDetailContent() {
     );
   }
 
-  const basePrice = getPriceForQuantity(product, 1);
-  const totalPrice = basePrice * quantity;
   const hasOffer = product.offerPercentage && product.offerPercentage > 0;
-  const hasWholesale = product.wholesalePrice3 || product.wholesalePrice6 || product.wholesalePrice9;
+  const basePrice = product.priceFor1 || (hasOffer ? product.price * (1 - product.offerPercentage! / 100) : product.price);
+  
+  let totalPrice = basePrice * parseInt(selectedQuantity);
+  if (selectedQuantity === '2' && product.priceFor2 && product.priceFor2 > 0) totalPrice = product.priceFor2;
+  if (selectedQuantity === '3' && product.priceFor3 && product.priceFor3 > 0) totalPrice = product.priceFor3;
+  
+  const hasBundlePrices = (product.priceFor1 && product.priceFor1 > 0) || (product.priceFor2 && product.priceFor2 > 0) || (product.priceFor3 && product.priceFor3 > 0);
   const hasSpecifications = product.width || product.length || product.thickness || product.woodType || product.madeIn || product.curing;
+
+  const getPriceDescription = (quantity: number) => {
+    if (quantity === 1) return hasOffer ? 'Precio oferta normal' : 'Precio normal';
+    const unitPrice = basePrice;
+    const bundlePrice = quantity === 2 ? product.priceFor2 : product.priceFor3;
+    if (bundlePrice && bundlePrice > 0) {
+        const totalNormalPrice = unitPrice * quantity;
+        const savings = totalNormalPrice - bundlePrice;
+        const percentage = Math.round((savings / totalNormalPrice) * 100);
+        return `Ahorras un ${percentage}% extra`;
+    }
+    return '';
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_1fr] lg:gap-12 gap-8">
         
-        {/* Vertical Thumbnails */}
         {galleryImages.length > 1 && (
             <div className="flex lg:flex-col gap-2 order-first lg:order-none">
                 {galleryImages.map((img, idx) => (
@@ -173,7 +191,6 @@ function ProductDetailContent() {
             </div>
         )}
 
-        {/* Main Image */}
         <div 
           className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg group"
           onMouseMove={handleMouseMove}
@@ -200,7 +217,6 @@ function ProductDetailContent() {
               sizes="(max-width: 768px) 100vw, 50vw"
               data-ai-hint={product.dataAiHint}
             />
-            {/* Zoom lens for desktop */}
             <div 
                 className={`hidden md:block absolute inset-0 pointer-events-none bg-no-repeat bg-contain transition-opacity duration-300 ${isZooming ? 'opacity-100' : 'opacity-0'}`}
                 style={{
@@ -221,35 +237,70 @@ function ProductDetailContent() {
             )}
         </div>
 
-        {/* Product Details */}
         <div className="flex flex-col space-y-4">
           <h1 className="font-headline text-2xl md:text-3xl font-bold">{product.name}</h1>
           
-          <div className="flex items-baseline gap-4">
-            <p className={`text-2xl font-bold ${hasOffer ? 'text-green-600' : 'text-primary'}`}>{formatPrice(totalPrice)}</p>
-            {hasOffer && (
-                 <p className="text-lg font-medium text-muted-foreground line-through">{formatPrice(product.price)}</p>
-            )}
-          </div>
-          
           {product.summary && (
-              <p className="text-muted-foreground text-sm">{product.summary}</p>
+              <p className="text-muted-foreground text-base">{product.summary}</p>
           )}
 
-          <div className='space-y-2'>
-            <Label>Cantidad</Label>
-            <div className="flex items-center border rounded-md w-fit">
-              <Button variant="ghost" size="icon" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="w-10 text-center font-medium">{quantity}</span>
-              <Button variant="ghost" size="icon" onClick={() => setQuantity(q => q + 1)}>
-                <Plus className="h-4 w-4" />
-              </Button>
+          {hasBundlePrices ? (
+             <RadioGroup defaultValue="1" onValueChange={setSelectedQuantity} className="space-y-2">
+                {product.priceFor1 && product.priceFor1 > 0 && (
+                    <Label htmlFor='q1' className={cn('flex items-center justify-between p-4 border rounded-lg cursor-pointer', {'border-primary ring-2 ring-primary': selectedQuantity === '1'})}>
+                        <div className="flex items-center gap-4">
+                            <RadioGroupItem value="1" id="q1" />
+                            <div>
+                                <p className="font-bold">1 Unidad por</p>
+                                <p className="text-sm text-muted-foreground">{getPriceDescription(1)}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="font-bold text-lg">{formatPrice(product.priceFor1)}</p>
+                            {hasOffer && <p className="text-sm text-muted-foreground line-through">{formatPrice(product.price)}</p>}
+                        </div>
+                    </Label>
+                )}
+                 {product.priceFor2 && product.priceFor2 > 0 && (
+                    <Label htmlFor='q2' className={cn('relative flex items-center justify-between p-4 border rounded-lg cursor-pointer', {'border-primary ring-2 ring-primary': selectedQuantity === '2'})}>
+                         <Badge className="absolute -top-3 right-4 bg-foreground text-background">Más vendido</Badge>
+                        <div className="flex items-center gap-4">
+                            <RadioGroupItem value="2" id="q2" />
+                            <div>
+                                <p className="font-bold">2 Unidades por</p>
+                                <p className="text-sm text-muted-foreground">{getPriceDescription(2)}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                             <p className="font-bold text-lg">{formatPrice(product.priceFor2)}</p>
+                             <p className="text-sm text-muted-foreground line-through">{formatPrice(basePrice * 2)}</p>
+                        </div>
+                    </Label>
+                )}
+                {product.priceFor3 && product.priceFor3 > 0 && (
+                    <Label htmlFor='q3' className={cn('flex items-center justify-between p-4 border rounded-lg cursor-pointer', {'border-primary ring-2 ring-primary': selectedQuantity === '3'})}>
+                        <div className="flex items-center gap-4">
+                            <RadioGroupItem value="3" id="q3" />
+                            <div>
+                                <p className="font-bold">3 Unidades por</p>
+                                <p className="text-sm text-muted-foreground">{getPriceDescription(3)}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                             <p className="font-bold text-lg">{formatPrice(product.priceFor3)}</p>
+                             <p className="text-sm text-muted-foreground line-through">{formatPrice(basePrice * 3)}</p>
+                        </div>
+                    </Label>
+                )}
+             </RadioGroup>
+          ) : (
+            <div className="flex items-baseline gap-4">
+                <p className={`text-2xl font-bold ${hasOffer ? 'text-green-600' : 'text-primary'}`}>{formatPrice(basePrice)}</p>
+                {hasOffer && <p className="text-lg font-medium text-muted-foreground line-through">{formatPrice(product.price)}</p>}
             </div>
-          </div>
+          )}
           
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-3 pt-4">
             <Button onClick={handleAddToCart} size="lg" variant="outline" className="text-base">
                 <ShoppingCart className="h-5 w-5 mr-2" /> Añadir al Carrito
             </Button>
@@ -257,18 +308,9 @@ function ProductDetailContent() {
                 Comprar Ahora
             </Button>
           </div>
+          
 
-          {hasWholesale && (
-            <Alert>
-                <ChevronsRight className="h-4 w-4" />
-                <AlertTitle className='font-headline'>¡Disponible por mayor!</AlertTitle>
-                <AlertDescription>
-                    Este producto tiene un precio especial por compras por volumen. Los descuentos se aplican en el carrito.
-                </AlertDescription>
-            </Alert>
-          )}
-
-           <Accordion type="single" collapsible className="w-full" defaultValue='description'>
+           <Accordion type="single" collapsible className="w-full pt-4" defaultValue='description'>
               <AccordionItem value="description">
                 <AccordionTrigger>Descripción</AccordionTrigger>
                 <AccordionContent>
@@ -280,7 +322,7 @@ function ProductDetailContent() {
                       <AccordionTrigger>Especificaciones</AccordionTrigger>
                       <AccordionContent>
                           <ul className="space-y-2 text-muted-foreground">
-                              {product.width && product.length && product.thickness && (
+                              {product.length && product.width && product.thickness && (
                                   <li className='flex items-center gap-2'><Ruler size={16} className='text-primary' /> Dimensiones: {product.length}cm x {product.width}cm x {product.thickness}cm</li>
                               )}
                               {product.woodType && <li className='flex items-center gap-2'><Ruler size={16} className='text-primary' /> Madera: {product.woodType}</li>}

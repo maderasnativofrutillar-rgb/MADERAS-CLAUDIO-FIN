@@ -15,25 +15,25 @@ import { db, storage } from '@/lib/firebase';
 import { type Product } from '@/lib/types';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight, Ruler, MapPin, Sparkles } from 'lucide-react';
+import { UploadCloud, X, Loader2, DollarSign, Percent, Tag, ChevronsRight, Ruler, MapPin, Sparkles, Package } from 'lucide-react';
 import Image from 'next/image';
 import { Checkbox } from './ui/checkbox';
 import { categories } from '@/lib/constants';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { cn } from '@/lib/utils';
 
 const MAX_IMAGES = 6;
 
 const productFormSchema = z.object({
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
-    summary: z.string().min(10, "El resumen debe tener al menos 10 caracteres.").max(150, "El resumen no puede tener más de 150 caracteres."),
+    summary: z.string().max(150, "El resumen no puede tener más de 150 caracteres.").optional(),
     description: z.string().min(10, "La descripción debe tener al menos 10 caracteres."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
     offerPercentage: z.coerce.number().min(0, "El descuento no puede ser negativo.").max(100, "El descuento no puede ser mayor a 100%.").optional().default(0),
-    wholesalePrice3: z.coerce.number().min(0).optional().default(0),
-    wholesalePrice6: z.coerce.number().min(0).optional().default(0),
-    wholesalePrice9: z.coerce.number().min(0).optional().default(0),
+    priceFor1: z.coerce.number().min(0).optional().default(0),
+    priceFor2: z.coerce.number().min(0).optional().default(0),
+    priceFor3: z.coerce.number().min(0).optional().default(0),
     categories: z.array(z.string()).optional().default([]),
     customTag: z.string().max(10, "La etiqueta no puede tener más de 10 caracteres.").optional(),
     width: z.coerce.number().min(0).optional(),
@@ -87,7 +87,6 @@ export function ProductForm() {
     const [loading, setLoading] = useState(false);
     const { toast } = useToast();
     
-    // This state will now hold unified image data for reordering
     const [images, setImages] = useState<(string | File)[]>([]);
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
 
@@ -102,9 +101,9 @@ export function ProductForm() {
             description: "",
             price: 0,
             offerPercentage: 0,
-            wholesalePrice3: 0,
-            wholesalePrice6: 0,
-            wholesalePrice9: 0,
+            priceFor1: 0,
+            priceFor2: 0,
+            priceFor3: 0,
             categories: [],
             customTag: "",
             width: 0,
@@ -129,9 +128,9 @@ export function ProductForm() {
                             description: productData.description || "",
                             price: productData.price || 0,
                             offerPercentage: productData.offerPercentage || 0,
-                            wholesalePrice3: productData.wholesalePrice3 || 0,
-                            wholesalePrice6: productData.wholesalePrice6 || 0,
-                            wholesalePrice9: productData.wholesalePrice9 || 0,
+                            priceFor1: productData.priceFor1 || 0,
+                            priceFor2: productData.priceFor2 || 0,
+                            priceFor3: productData.priceFor3 || 0,
                             categories: productData.categories || [],
                             customTag: productData.customTag || "",
                             width: productData.width || 0,
@@ -221,26 +220,26 @@ export function ProductForm() {
                 return;
             }
 
-            const productData: Omit<Product, 'id' | 'createdAt'> = {
+            const productData = {
                 name: data.name,
-                summary: data.summary,
+                summary: data.summary || "",
                 description: data.description,
                 price: data.price,
                 image: finalImageUrls[0],
                 images: finalImageUrls.slice(1),
                 offerPercentage: data.offerPercentage || 0,
-                wholesalePrice3: data.wholesalePrice3 || 0,
-                wholesalePrice6: data.wholesalePrice6 || 0,
-                wholesalePrice9: data.wholesalePrice9 || 0,
+                priceFor1: data.priceFor1 || 0,
+                priceFor2: data.priceFor2 || 0,
+                priceFor3: data.priceFor3 || 0,
                 categories: data.categories || [],
                 customTag: data.customTag || "",
                 dataAiHint: "",
-                width: data.width,
-                length: data.length,
-                thickness: data.thickness,
-                woodType: data.woodType,
-                madeIn: data.madeIn,
-                curing: data.curing,
+                width: data.width || 0,
+                length: data.length || 0,
+                thickness: data.thickness || 0,
+                woodType: data.woodType || "",
+                madeIn: data.madeIn || "",
+                curing: data.curing || "",
             };
 
             if (product) {
@@ -274,7 +273,7 @@ export function ProductForm() {
                         )} />
                         <FormField control={form.control} name="summary" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Resumen del Producto</FormLabel>
+                                <FormLabel>Resumen del Producto (Opcional)</FormLabel>
                                 <FormControl><Textarea {...field} rows={3} maxLength={150} placeholder="Un resumen corto y atractivo que aparecerá siempre visible en la página del producto." /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -303,8 +302,26 @@ export function ProductForm() {
                     </CardContent>
                 </Card>
                 
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Package size={20}/> Precios por Paquete (Opcional)</CardTitle>
+                        <CardDescription>Define precios especiales para la compra de múltiples unidades. Si se dejan en 0, no se mostrarán.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                         <FormField control={form.control} name="priceFor1" render={({ field }) => (
+                            <FormItem><FormLabel>Precio Total por 1 Unidad</FormLabel><FormControl><Input type="number" {...field} placeholder="Dejar en 0 para usar precio base" /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="priceFor2" render={({ field }) => (
+                            <FormItem><FormLabel>Precio Total por 2 Unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="priceFor3" render={({ field }) => (
+                            <FormItem><FormLabel>Precio Total por 3+ Unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </CardContent>
+                </Card>
+
                 <Card>
-                    <CardHeader><CardTitle>Especificaciones del Producto</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Especificaciones (Opcional)</CardTitle></CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <FormField control={form.control} name="width" render={({ field }) => (
@@ -328,21 +345,6 @@ export function ProductForm() {
                                 <FormItem><FormLabel>Curado con</FormLabel><FormControl><Input {...field} placeholder="Ej: Cera de Abeja y Aceite Mineral" /></FormControl><FormMessage /></FormItem>
                             )} />
                         </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2"><ChevronsRight size={20}/> Precios por Mayor (Opcional)</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                         <FormField control={form.control} name="wholesalePrice3" render={({ field }) => (
-                            <FormItem><FormLabel>Precio por 3+ unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                         <FormField control={form.control} name="wholesalePrice6" render={({ field }) => (
-                            <FormItem><FormLabel>Precio por 6+ unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                         <FormField control={form.control} name="wholesalePrice9" render={({ field }) => (
-                            <FormItem><FormLabel>Precio por 9+ unidades</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
                     </CardContent>
                 </Card>
                 

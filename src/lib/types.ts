@@ -2,19 +2,19 @@
 export interface Product {
     id: string;
     name: string;
-    summary: string;
+    summary?: string;
     description: string;
-    price: number;
+    price: number; // Legacy price, now acts as a fallback or base for single unit.
     image: string; // Primary image
     images?: string[]; // Gallery images
     categories?: string[];
     dataAiHint?: string;
     createdAt?: any;
     
-    // Wholesale pricing tiers
-    wholesalePrice3?: number;
-    wholesalePrice6?: number;
-    wholesalePrice9?: number;
+    // New bundle pricing
+    priceFor1?: number; // Price for a single unit
+    priceFor2?: number; // Total price for 2 units
+    priceFor3?: number; // Total price for 3 or more units
 
     // Offer
     offerPercentage?: number;
