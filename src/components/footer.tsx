@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { TreePine, Phone, Instagram } from "lucide-react";
+import { TreePine, Phone } from "lucide-react";
 import { categories } from "@/lib/constants";
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -53,7 +53,7 @@ export async function SiteFooter() {
               </p>
                {siteImages.paymentMethods && (
                 <div className="pt-4">
-                  <Image src={siteImages.paymentMethods} alt="Métodos de pago" width={255} height={50} style={{ objectFit: 'contain' }} />
+                  <Image src={siteImages.paymentMethods} alt="Métodos de pago" width={255} height={50} style={{ objectFit: 'contain' }} unoptimized />
                 </div>
               )}
             </div>
@@ -92,12 +92,12 @@ export async function SiteFooter() {
             <div className="flex items-center space-x-6">
                  {siteImages.instagramIcon && (
                     <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                        <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" />
+                        <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
                     </a>
                 )}
                 {siteImages.tiktokIcon && (
                     <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                        <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" />
+                        <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
                     </a>
                 )}
             </div>

@@ -94,12 +94,12 @@ export default async function Home() {
                     <p className="text-sm uppercase tracking-wider font-medium">Síguenos</p>
                     {siteImages.instagramIcon && (
                         <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                            <Image src={siteImages.instagramIcon} alt="Instagram" width={32} height={32} className="transition-transform hover:scale-110" />
+                            <Image src={siteImages.instagramIcon} alt="Instagram" width={32} height={32} className="transition-transform hover:scale-110" unoptimized />
                         </a>
                     )}
                      {siteImages.tiktokIcon && (
                         <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                           <Image src={siteImages.tiktokIcon} alt="TikTok" width={32} height={32} className="transition-transform hover:scale-110" />
+                           <Image src={siteImages.tiktokIcon} alt="TikTok" width={32} height={32} className="transition-transform hover:scale-110" unoptimized />
                         </a>
                     )}
                 </div>
