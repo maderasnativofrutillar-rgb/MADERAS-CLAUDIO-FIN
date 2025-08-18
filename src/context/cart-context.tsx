@@ -97,27 +97,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
   
-  // The total is now a derived value, calculated on the fly. This is more robust.
   const cartTotal = cartItems.reduce((total, item) => {
     const { quantity } = item;
-    let itemTotal = 0;
+    
+    // Check for bundle pricing first.
+    const hasBundlePricing = (item.priceFor1 && item.priceFor1 > 0) || (item.priceFor2 && item.priceFor2 > 0) || (item.priceFor3 && item.priceFor3 > 0);
 
-    // 1. Check for bundle pricing first. These are TOTAL prices for the bundle.
-    if (quantity >= 3 && item.priceFor3 && item.priceFor3 > 0) {
-      itemTotal = item.priceFor3;
-    } else if (quantity === 2 && item.priceFor2 && item.priceFor2 > 0) {
-      itemTotal = item.priceFor2;
-    } else if (quantity === 1 && item.priceFor1 && item.priceFor1 > 0) {
-      itemTotal = item.priceFor1;
+    if (hasBundlePricing) {
+        // If bundle pricing exists, it takes precedence.
+        let bundlePrice = 0;
+        if (quantity >= 3 && item.priceFor3 && item.priceFor3 > 0) {
+            bundlePrice = item.priceFor3 * Math.floor(quantity / 3);
+            const remainder = quantity % 3;
+            if (remainder === 2 && item.priceFor2 && item.priceFor2 > 0) {
+              bundlePrice += item.priceFor2;
+            } else if (remainder > 0 && item.priceFor1 && item.priceFor1 > 0) {
+              bundlePrice += item.priceFor1 * remainder;
+            } else if (remainder > 0) { // Fallback if priceFor1 is not set
+               const unitPrice = (item.offerPercentage && item.offerPercentage > 0) ? item.price * (1 - item.offerPercentage / 100) : item.price;
+               bundlePrice += unitPrice * remainder;
+            }
+        } else if (quantity === 2 && item.priceFor2 && item.priceFor2 > 0) {
+            bundlePrice = item.priceFor2;
+        } else if (quantity === 1 && item.priceFor1 && item.priceFor1 > 0) {
+            bundlePrice = item.priceFor1;
+        } else {
+             const unitPrice = (item.offerPercentage && item.offerPercentage > 0) ? item.price * (1 - item.offerPercentage / 100) : item.price;
+             bundlePrice = unitPrice * quantity;
+        }
+        return total + bundlePrice;
+
     } else {
-      // 2. If no bundle price applies, calculate from base price + offer
-      const unitPrice = (item.offerPercentage && item.offerPercentage > 0)
-        ? Math.round(item.price * (1 - item.offerPercentage / 100))
-        : item.price;
-      itemTotal = unitPrice * quantity;
+        // Fallback to offer or base price if no bundle pricing is applicable
+        const unitPrice = (item.offerPercentage && item.offerPercentage > 0)
+            ? item.price * (1 - item.offerPercentage / 100)
+            : item.price;
+        return total + (unitPrice * quantity);
     }
-
-    return total + itemTotal;
   }, 0);
 
 
