@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast"
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity?: number, unitPrice?: number) => void;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -16,24 +16,6 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-
-// Helper function to get the correct price based on quantity and available offers
-const getPriceForQuantity = (product: Product, quantity: number): number => {
-    // Priority: Bundle prices first
-    if (quantity >= 3 && product.priceFor3 && product.priceFor3 > 0) return Math.round(product.priceFor3 / 3);
-    if (quantity === 2 && product.priceFor2 && product.priceFor2 > 0) return Math.round(product.priceFor2 / 2);
-    if (quantity === 1 && product.priceFor1 && product.priceFor1 > 0) return product.priceFor1;
-
-    // Then, percentage-based offer
-    if (product.offerPercentage && product.offerPercentage > 0) {
-        return Math.round(product.price * (1 - product.offerPercentage / 100));
-    }
-    
-    // Finally, the base price
-    return product.price;
-};
-
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -58,23 +40,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
   
-  const addToCart = (product: Product, quantityToAdd = 1, unitPrice?: number) => {
-    
-    // If a specific unit price is provided (e.g., from a bundle deal), use it. Otherwise, calculate it.
-    const price = unitPrice !== undefined ? Math.round(unitPrice) : getPriceForQuantity(product, quantityToAdd);
-
+  const addToCart = (product: Product, quantityToAdd = 1) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       
       let newItems;
       if (existingItem) {
-        const newQuantity = existingItem.quantity + quantityToAdd;
-        const newPrice = getPriceForQuantity(product, newQuantity); // Recalculate price for new total quantity
+        // If item exists, just update its quantity
         newItems = prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: newQuantity, price: newPrice } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantityToAdd } : item
         );
       } else {
-        newItems = [...prevItems, { ...product, quantity: quantityToAdd, price }];
+        // Otherwise, add the new item with all its pricing info
+        newItems = [...prevItems, { ...product, quantity: quantityToAdd }];
       }
       return newItems;
     });
@@ -106,9 +84,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems((prevItems) => 
       prevItems.map((item) => {
         if (item.id === productId) {
-            // Recalculate the price based on the new quantity
-            const newPrice = getPriceForQuantity(item, quantity);
-            return { ...item, quantity: quantity, price: newPrice };
+            return { ...item, quantity: quantity };
         }
         return item;
       })
@@ -120,7 +96,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
-  const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  
+  // The total is now a derived value, calculated on the fly. This is more robust.
+  const cartTotal = cartItems.reduce((total, item) => {
+    const { quantity } = item;
+    let itemTotal = 0;
+
+    // 1. Check for bundle pricing first. These are TOTAL prices for the bundle.
+    if (quantity >= 3 && item.priceFor3 && item.priceFor3 > 0) {
+      itemTotal = item.priceFor3;
+    } else if (quantity === 2 && item.priceFor2 && item.priceFor2 > 0) {
+      itemTotal = item.priceFor2;
+    } else if (quantity === 1 && item.priceFor1 && item.priceFor1 > 0) {
+      itemTotal = item.priceFor1;
+    } else {
+      // 2. If no bundle price applies, calculate from base price + offer
+      const unitPrice = (item.offerPercentage && item.offerPercentage > 0)
+        ? Math.round(item.price * (1 - item.offerPercentage / 100))
+        : item.price;
+      itemTotal = unitPrice * quantity;
+    }
+
+    return total + itemTotal;
+  }, 0);
+
 
   return (
     <CartContext.Provider
