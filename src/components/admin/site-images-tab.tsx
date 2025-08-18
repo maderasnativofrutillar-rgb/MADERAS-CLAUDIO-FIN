@@ -25,6 +25,8 @@ const siteImagesSchema = z.object({
   about: z.any(),
   portfolio: z.array(z.any()).optional(),
   paymentMethods: z.any(),
+  instagramIcon: z.any(),
+  tiktokIcon: z.any(),
 });
 
 type SiteImagesFormValues = z.infer<typeof siteImagesSchema>;
@@ -42,7 +44,7 @@ const ImageUploadField = ({ name, label, setValue, currentImageUrl }: { name: ke
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: { 'image/*': [] },
+        accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.svg'] },
         multiple: false,
     });
 
@@ -97,6 +99,8 @@ export function SiteImagesTab() {
           about: data.about,
           portfolio: data.portfolio,
           paymentMethods: data.paymentMethods,
+          instagramIcon: data.instagramIcon,
+          tiktokIcon: data.tiktokIcon,
         });
       }
     } catch (error) {
@@ -130,6 +134,8 @@ export function SiteImagesTab() {
         const essenceUrl = data.essence ? await uploadImage(data.essence, 'essence') : initialData?.essence;
         const aboutUrl = data.about ? await uploadImage(data.about, 'about') : initialData?.about;
         const paymentMethodsUrl = data.paymentMethods ? await uploadImage(data.paymentMethods, 'paymentMethods') : initialData?.paymentMethods;
+        const instagramIconUrl = data.instagramIcon ? await uploadImage(data.instagramIcon, 'instagramIcon') : initialData?.instagramIcon;
+        const tiktokIconUrl = data.tiktokIcon ? await uploadImage(data.tiktokIcon, 'tiktokIcon') : initialData?.tiktokIcon;
 
         // For portfolio, we need to handle a mix of existing URLs and new files
         let portfolioUrls: string[] = [];
@@ -147,6 +153,8 @@ export function SiteImagesTab() {
             about: aboutUrl || '',
             portfolio: portfolioUrls,
             paymentMethods: paymentMethodsUrl || '',
+            instagramIcon: instagramIconUrl || '',
+            tiktokIcon: tiktokIconUrl || '',
         };
 
         await setDoc(doc(db, "siteConfig", "images"), siteData);
@@ -182,7 +190,9 @@ export function SiteImagesTab() {
             <ImageUploadField name="essence" label="Imagen 'Nuestra Esencia' (Página de Inicio)" setValue={setValue} currentImageUrl={initialData?.essence || null} />
             <ImageUploadField name="about" label="Imagen 'Nosotros'" setValue={setValue} currentImageUrl={initialData?.about || null} />
             <ImageUploadField name="paymentMethods" label="Imagen de Métodos de Pago (Checkout y Footer)" setValue={setValue} currentImageUrl={initialData?.paymentMethods || null} />
-            
+            <ImageUploadField name="instagramIcon" label="Icono Instagram (SVG recomendado)" setValue={setValue} currentImageUrl={initialData?.instagramIcon || null} />
+            <ImageUploadField name="tiktokIcon" label="Icono TikTok (SVG recomendado)" setValue={setValue} currentImageUrl={initialData?.tiktokIcon || null} />
+
             {/* Portfolio Management */}
             <FormField
                 control={control}

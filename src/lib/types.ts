@@ -43,5 +43,7 @@ export interface Product {
     logo: string;
     favicon: string;
     paymentMethods: string;
+    instagramIcon: string;
+    tiktokIcon: string;
   }
   

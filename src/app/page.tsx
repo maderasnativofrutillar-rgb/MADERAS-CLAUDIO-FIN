@@ -6,10 +6,8 @@ import { collection, getDocs, limit, orderBy, query, doc, getDoc } from "firebas
 import { Product, SiteImages } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
-import { Instagram } from "lucide-react";
 import { TypewriterEffect } from "@/components/typewriter-effect";
 import { CarouselWithProgress } from "@/components/product-carousel-progress";
-import { TiktokIcon } from "@/components/tiktok-icon";
 
 // Ensure this page is dynamically rendered
 export const revalidate = 0;
@@ -46,6 +44,8 @@ async function getSiteImages(): Promise<SiteImages> {
             logo: "",
             favicon: "",
             paymentMethods: "",
+            instagramIcon: "",
+            tiktokIcon: "",
         };
     }
 }
@@ -92,12 +92,16 @@ export default async function Home() {
             <div className="absolute bottom-10 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-6 rounded-full bg-white/20 backdrop-blur-sm px-6 py-2 border border-white/30">
                     <p className="text-sm uppercase tracking-wider font-medium">Síguenos</p>
-                    <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                        <Instagram className="h-8 w-8 text-primary transition-transform hover:scale-110" />
-                    </a>
-                    <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                       <TiktokIcon className="h-8 w-8 text-primary transition-transform hover:scale-110" />
-                    </a>
+                    {siteImages.instagramIcon && (
+                        <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
+                            <Image src={siteImages.instagramIcon} alt="Instagram" width={32} height={32} className="transition-transform hover:scale-110" />
+                        </a>
+                    )}
+                     {siteImages.tiktokIcon && (
+                        <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
+                           <Image src={siteImages.tiktokIcon} alt="TikTok" width={32} height={32} className="transition-transform hover:scale-110" />
+                        </a>
+                    )}
                 </div>
             </div>
           </div>
