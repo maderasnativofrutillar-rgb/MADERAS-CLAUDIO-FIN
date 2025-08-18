@@ -131,7 +131,7 @@ export function SiteFooter() {
           </div>
         </Link>
       </footer>
-      <div className="bg-background text-center py-2 px-4 text-xs text-muted-foreground">
+      <div className="bg-orange-950 text-center py-4 px-4 text-xs text-orange-100">
         <p>Desarrollado por Fenrir - MORC - Fjavier.morc@gmail.com</p>
       </div>
     </>
