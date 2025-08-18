@@ -95,12 +95,16 @@ export default async function Home() {
                     <p className="text-sm uppercase tracking-wider font-medium">Síguenos</p>
                     {siteImages.instagramIcon && (
                         <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                            <Image src={siteImages.instagramIcon} alt="Instagram" width={28} height={28} className="transition-transform hover:scale-110" />
+                            <div className="relative w-8 h-8 rounded-full border-2 border-primary shadow-lg transition-transform hover:scale-110">
+                                <Image src={siteImages.instagramIcon} alt="Instagram" fill className="object-cover rounded-full" />
+                            </div>
                         </a>
                     )}
                     {siteImages.tiktokIcon && (
                         <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                            <Image src={siteImages.tiktokIcon} alt="TikTok" width={28} height={28} className="transition-transform hover:scale-110" />
+                           <div className="relative w-8 h-8 rounded-full border-2 border-primary shadow-lg transition-transform hover:scale-110">
+                                <Image src={siteImages.tiktokIcon} alt="TikTok" fill className="object-cover rounded-full" />
+                            </div>
                         </a>
                     )}
                 </div>
