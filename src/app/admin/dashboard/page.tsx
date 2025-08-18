@@ -5,15 +5,13 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PlusCircle, Image as ImageIcon, Users, BarChart } from 'lucide-react';
+import { PlusCircle, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ProductsTab } from '@/components/admin/products-tab';
 import { SiteImagesTab } from '@/components/admin/site-images-tab';
-import { UsersTab } from '@/components/admin/users-tab';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { UsageTab } from '@/components/admin/usage-tab';
 import { doc, getDoc } from 'firebase/firestore';
 
 
@@ -83,14 +81,6 @@ export default function DashboardPage() {
                         <ImageIcon className="h-4 w-4 mr-2"/>
                         Imágenes del Sitio
                     </TabsTrigger>
-                    <TabsTrigger value="users">
-                        <Users className="h-4 w-4 mr-2"/>
-                        Usuarios
-                    </TabsTrigger>
-                     <TabsTrigger value="usage">
-                        <BarChart className="h-4 w-4 mr-2"/>
-                        Uso de Firebase
-                    </TabsTrigger>
                 </>
               )}
             </TabsList>
@@ -122,28 +112,6 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <SiteImagesTab />
-                    </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="users">
-                    <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Gestión de Usuarios</CardTitle>
-                        <CardDescription>Añade, edita roles o elimina usuarios administradores desde la consola de Firebase.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UsersTab />
-                    </CardContent>
-                    </Card>
-                </TabsContent>
-                 <TabsContent value="usage">
-                    <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Métricas de Uso de Firebase</CardTitle>
-                        <CardDescription>Monitorea el uso de los servicios de Firebase como Firestore, Storage y Hosting.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UsageTab />
                     </CardContent>
                     </Card>
                 </TabsContent>
