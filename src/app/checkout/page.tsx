@@ -186,7 +186,7 @@ export default function CheckoutPage() {
     
     try {
         const paymentData = {
-            amount: finalTotal,
+            amount: Math.round(finalTotal),
             email: data.email,
             commerceOrder: `NATIVO-SUR-${Date.now()}`
         };

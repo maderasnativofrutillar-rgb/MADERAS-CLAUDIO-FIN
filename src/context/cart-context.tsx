@@ -21,13 +21,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 // Helper function to get the correct price based on quantity and available offers
 const getPriceForQuantity = (product: Product, quantity: number): number => {
     // Priority: Bundle prices first
-    if (quantity >= 3 && product.priceFor3 && product.priceFor3 > 0) return product.priceFor3 / 3;
-    if (quantity === 2 && product.priceFor2 && product.priceFor2 > 0) return product.priceFor2 / 2;
+    if (quantity >= 3 && product.priceFor3 && product.priceFor3 > 0) return Math.round(product.priceFor3 / 3);
+    if (quantity === 2 && product.priceFor2 && product.priceFor2 > 0) return Math.round(product.priceFor2 / 2);
     if (quantity === 1 && product.priceFor1 && product.priceFor1 > 0) return product.priceFor1;
 
     // Then, percentage-based offer
     if (product.offerPercentage && product.offerPercentage > 0) {
-        return product.price * (1 - product.offerPercentage / 100);
+        return Math.round(product.price * (1 - product.offerPercentage / 100));
     }
     
     // Finally, the base price
@@ -61,7 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = (product: Product, quantityToAdd = 1, unitPrice?: number) => {
     
     // If a specific unit price is provided (e.g., from a bundle deal), use it. Otherwise, calculate it.
-    const price = unitPrice !== undefined ? unitPrice : getPriceForQuantity(product, quantityToAdd);
+    const price = unitPrice !== undefined ? Math.round(unitPrice) : getPriceForQuantity(product, quantityToAdd);
 
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
