@@ -53,7 +53,7 @@ export function SiteFooter() {
   
   return (
     <>
-      <footer className="border-t bg-secondary/30">
+      <footer className="bg-secondary/30">
         <div className="container py-12">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             <div className="space-y-4 md:col-span-2">
@@ -133,7 +133,7 @@ export function SiteFooter() {
           </div>
         </Link>
       </footer>
-      <div className="text-center py-4 px-4 text-xs text-muted-foreground">
+      <div className="text-center py-4 px-4 text-xs bg-orange-950 text-orange-100">
         <p>Desarrollado por Fenrir - MORC - Fjavier.morc@gmail.com</p>
       </div>
     </>
