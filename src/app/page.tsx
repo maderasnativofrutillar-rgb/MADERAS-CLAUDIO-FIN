@@ -43,7 +43,10 @@ async function getSiteImages(): Promise<SiteImages> {
             about: "https://placehold.co/800x1000.png",
             portfolio: Array(5).fill("https://placehold.co/600x400.png"),
             logo: "",
-            favicon: ""
+            favicon: "",
+            paymentMethods: "",
+            instagramIcon: "",
+            tiktokIcon: ""
         };
     }
 }
@@ -87,11 +90,19 @@ export default async function Home() {
                 <Link href="/contacto">Contáctanos</Link>
               </Button>
             </div>
-            <div className="absolute bottom-10 flex flex-col items-center gap-2">
-                <p className="text-sm uppercase tracking-wider">Síguenos en nuestras redes</p>
-                <div className="flex items-center gap-6 text-lg">
-                    <Link href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" className="text-pink-400 font-bold hover:text-white transition-colors">INSTAGRAM</Link>
-                    <Link href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" className="text-cyan-400 font-bold hover:text-white transition-colors">TIKTOK</Link>
+            <div className="absolute bottom-10 flex flex-col items-center gap-4">
+                <div className="flex items-center gap-6 rounded-full bg-white/20 backdrop-blur-sm px-6 py-2 border border-white/30">
+                    <p className="text-sm uppercase tracking-wider font-medium">Síguenos</p>
+                    {siteImages.instagramIcon && (
+                        <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
+                            <Image src={siteImages.instagramIcon} alt="Instagram" width={28} height={28} className="transition-transform hover:scale-110" />
+                        </a>
+                    )}
+                    {siteImages.tiktokIcon && (
+                        <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
+                            <Image src={siteImages.tiktokIcon} alt="TikTok" width={28} height={28} className="transition-transform hover:scale-110" />
+                        </a>
+                    )}
                 </div>
             </div>
           </div>
