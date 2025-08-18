@@ -2,7 +2,7 @@
 'use client';
 
 import Link from "next/link";
-import { TreePine, User, Menu, LogOut, Mail, Phone, ShieldCheck, UserCog } from "lucide-react";
+import { TreePine, User, Menu, LogOut, Mail, Phone, ShieldCheck, UserCog, Instagram, Tiktok } from "lucide-react";
 import { MainNav } from "./main-nav";
 import { CartSheet } from "./cart-sheet";
 import { AnnouncementBar } from "./announcement-bar";
