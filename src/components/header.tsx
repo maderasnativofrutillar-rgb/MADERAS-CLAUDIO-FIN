@@ -114,7 +114,7 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
           </Sheet>
         </div>
         <Link href="/" className="hidden md:flex items-center space-x-2 mr-6">
-          {logo ? (
+          {isClient && logo ? (
             <Image src={logo} alt="Logo Madera Nativo Sur" width={140} height={56} className="object-contain" unoptimized />
           ) : (
             <>

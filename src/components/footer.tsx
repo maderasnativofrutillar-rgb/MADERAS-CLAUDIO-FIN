@@ -1,4 +1,6 @@
 
+'use client'
+
 import Link from "next/link";
 import { TreePine, Phone } from "lucide-react";
 import { categories } from "@/lib/constants";
@@ -6,6 +8,7 @@ import { getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { SiteImages } from '@/lib/types';
 import Image from 'next/image';
+import { useState, useEffect } from "react";
 
 
 function slugify(text: string) {
@@ -13,7 +16,7 @@ function slugify(text: string) {
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 }
 
-async function getSiteImages(): Promise<SiteImages> {
+async function getSiteImagesData(): Promise<SiteImages> {
     const docRef = doc(db, "siteConfig", "images");
     const docSnap = await getDoc(docRef);
 
@@ -35,8 +38,18 @@ async function getSiteImages(): Promise<SiteImages> {
 }
 
 
-export async function SiteFooter() {
-  const siteImages = await getSiteImages();
+export function SiteFooter() {
+  const [siteImages, setSiteImages] = useState<SiteImages | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+      setIsClient(true);
+      const fetchImages = async () => {
+          const images = await getSiteImagesData();
+          setSiteImages(images);
+      };
+      fetchImages();
+  }, []);
   
   return (
     <>
@@ -51,7 +64,7 @@ export async function SiteFooter() {
               <p className="text-sm text-muted-foreground">
                 Artesanía en madera que cuenta una historia. Desde Frutillar, Chile, al mundo.
               </p>
-               {siteImages.paymentMethods && (
+               {isClient && siteImages?.paymentMethods && (
                 <div className="pt-4">
                   <Image src={siteImages.paymentMethods} alt="Métodos de pago" width={255} height={50} style={{ objectFit: 'contain' }} unoptimized />
                 </div>
@@ -90,12 +103,12 @@ export async function SiteFooter() {
           </div>
           <div className="border-t mt-8 pt-6 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground">
             <div className="flex items-center space-x-6">
-                 {siteImages.instagramIcon && (
+                 {isClient && siteImages?.instagramIcon && (
                     <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
                         <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
                     </a>
                 )}
-                {siteImages.tiktokIcon && (
+                {isClient && siteImages?.tiktokIcon && (
                     <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
                         <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
                     </a>
@@ -124,3 +137,4 @@ export async function SiteFooter() {
     </>
   );
 }
+
