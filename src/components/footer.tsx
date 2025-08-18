@@ -101,21 +101,23 @@ export function SiteFooter() {
               </ul>
             </div>
           </div>
-          <div className="border-t mt-8 pt-6 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground">
-            <div className="flex items-center space-x-6">
-                 {isClient && siteImages?.instagramIcon && (
-                    <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                        <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
-                    </a>
-                )}
-                {isClient && siteImages?.tiktokIcon && (
-                    <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                        <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
-                    </a>
-                )}
+        </div>
+        <div className="bg-orange-950 text-orange-100 text-center py-4 px-4">
+            <div className="container mx-auto flex flex-col items-center gap-4 text-sm">
+                <div className="flex items-center space-x-6">
+                    {isClient && siteImages?.instagramIcon && (
+                        <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
+                            <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
+                        </a>
+                    )}
+                    {isClient && siteImages?.tiktokIcon && (
+                        <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
+                            <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" unoptimized />
+                        </a>
+                    )}
+                </div>
+                <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
             </div>
-            <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
-          </div>
         </div>
         <Link
           href="https://wa.me/56959328956"
@@ -131,10 +133,9 @@ export function SiteFooter() {
           </div>
         </Link>
       </footer>
-      <div className="bg-orange-950 text-center py-4 px-4 text-xs text-orange-100">
+      <div className="text-center py-4 px-4 text-xs text-muted-foreground">
         <p>Desarrollado por Fenrir - MORC - Fjavier.morc@gmail.com</p>
       </div>
     </>
   );
 }
-
