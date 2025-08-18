@@ -88,19 +88,19 @@ export async function SiteFooter() {
               </ul>
             </div>
           </div>
-          <div className="border-t mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center text-center text-sm text-muted-foreground">
+          <div className="border-t mt-8 pt-6 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
-            <div className="flex items-center space-x-4 pt-4 sm:pt-0">
-                  {siteImages.instagramIcon && (
-                    <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                        <Image src={siteImages.instagramIcon} alt="Instagram" width={20} height={20} className="transition-opacity hover:opacity-80" />
-                    </a>
-                  )}
-                  {siteImages.tiktokIcon && (
-                    <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                        <Image src={siteImages.tiktokIcon} alt="TikTok" width={20} height={20} className="transition-opacity hover:opacity-80" />
-                    </a>
-                  )}
+            <div className="flex items-center space-x-6">
+                {siteImages.instagramIcon && (
+                <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
+                    <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" />
+                </a>
+                )}
+                {siteImages.tiktokIcon && (
+                <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
+                    <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" />
+                </a>
+                )}
             </div>
           </div>
         </div>
