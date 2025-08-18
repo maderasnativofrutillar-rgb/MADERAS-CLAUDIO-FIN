@@ -89,7 +89,6 @@ export async function SiteFooter() {
             </div>
           </div>
           <div className="border-t mt-8 pt-6 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
             <div className="flex items-center space-x-6">
                 {siteImages.instagramIcon && (
                 <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
@@ -102,6 +101,7 @@ export async function SiteFooter() {
                 </a>
                 )}
             </div>
+            <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
           </div>
         </div>
         <Link
