@@ -93,18 +93,23 @@ function ProductDetailContent() {
   const handleAddToCart = () => {
     if (product) {
       const quantity = selectedQuantity;
-      const basePrice = product.price;
-      let finalPrice = product.offerPercentage ? basePrice * (1 - product.offerPercentage/100) : basePrice;
+      let finalUnitPrice;
       
-      if (quantity === 2 && product.priceFor2) {
-          finalPrice = product.priceFor2 / 2;
-      } else if (quantity === 3 && product.priceFor3) {
-          finalPrice = product.priceFor3 / 3;
-      } else if (product.priceFor1) {
-          finalPrice = product.priceFor1;
+      // Determine the unit price based on the selected quantity bundle
+      if (quantity === 3 && product.priceFor3 && product.priceFor3 > 0) {
+          finalUnitPrice = product.priceFor3 / 3;
+      } else if (quantity === 2 && product.priceFor2 && product.priceFor2 > 0) {
+          finalUnitPrice = product.priceFor2 / 2;
+      } else if (quantity === 1 && product.priceFor1 && product.priceFor1 > 0) {
+          finalUnitPrice = product.priceFor1;
+      } else {
+        // Fallback to offer or base price
+        finalUnitPrice = product.offerPercentage && product.offerPercentage > 0 
+          ? product.price * (1 - product.offerPercentage/100) 
+          : product.price;
       }
       
-      addToCart(product, quantity, finalPrice);
+      addToCart(product, quantity, finalUnitPrice);
     }
   };
 
@@ -163,11 +168,6 @@ function ProductDetailContent() {
   const basePrice = product.price;
   const offerPrice = hasOffer ? basePrice * (1 - product.offerPercentage / 100) : basePrice;
   
-  let totalPrice = offerPrice * selectedQuantity;
-  if (selectedQuantity === 2 && product.priceFor2 && product.priceFor2 > 0) totalPrice = product.priceFor2;
-  if (selectedQuantity === 3 && product.priceFor3 && product.priceFor3 > 0) totalPrice = product.priceFor3;
-  if (selectedQuantity === 1 && product.priceFor1 && product.priceFor1 > 0) totalPrice = product.priceFor1;
-  
   const hasBundlePrices = (product.priceFor1 && product.priceFor1 > 0) || (product.priceFor2 && product.priceFor2 > 0) || (product.priceFor3 && product.priceFor3 > 0);
   const hasSpecifications = product.width || product.length || product.thickness || product.woodType || product.madeIn || product.curing;
 
@@ -175,27 +175,18 @@ function ProductDetailContent() {
     if (!hasBundlePrices) return '';
 
     const unitPriceWithOffer = offerPrice;
-    let bundlePricePerUnit: number | null = null;
-    let originalTotal = unitPriceWithOffer * quantity;
     let bundleTotal: number | null = null;
+    let originalTotal = unitPriceWithOffer * quantity;
 
-    if (quantity === 1 && product.priceFor1) {
-        bundlePricePerUnit = product.priceFor1;
-        bundleTotal = product.priceFor1;
-    } else if (quantity === 2 && product.priceFor2) {
-        bundlePricePerUnit = product.priceFor2 / 2;
-        bundleTotal = product.priceFor2;
-    } else if (quantity === 3 && product.priceFor3) {
-        bundlePricePerUnit = product.priceFor3 / 3;
-        bundleTotal = product.priceFor3;
-    }
+    if (quantity === 1 && product.priceFor1) bundleTotal = product.priceFor1;
+    if (quantity === 2 && product.priceFor2) bundleTotal = product.priceFor2;
+    if (quantity === 3 && product.priceFor3) bundleTotal = product.priceFor3;
+    
 
-    if (bundleTotal) {
+    if (bundleTotal && bundleTotal < originalTotal) {
         const savings = originalTotal - bundleTotal;
-        if (savings > 0) {
-            const percentage = Math.round((savings / originalTotal) * 100);
-            return `Ahorras un ${percentage}% extra`;
-        }
+        const percentage = Math.round((savings / originalTotal) * 100);
+        return `Ahorras un ${percentage}% extra`;
     }
     return 'Precio normal';
   }
@@ -281,7 +272,7 @@ function ProductDetailContent() {
                         <div className="flex items-center gap-4">
                             <RadioGroupItem value="1" id="q1" />
                             <div>
-                                <p className="font-bold">1 Unidad por</p>
+                                <p className="font-bold">1 Unidad</p>
                                 <p className="text-sm text-muted-foreground">{getPriceDescription(1)}</p>
                             </div>
                         </div>
@@ -297,7 +288,7 @@ function ProductDetailContent() {
                         <div className="flex items-center gap-4">
                             <RadioGroupItem value="2" id="q2" />
                             <div>
-                                <p className="font-bold">2 Unidades por</p>
+                                <p className="font-bold">2 Unidades</p>
                                 <p className="text-sm text-muted-foreground">{getPriceDescription(2)}</p>
                             </div>
                         </div>
@@ -312,7 +303,7 @@ function ProductDetailContent() {
                         <div className="flex items-center gap-4">
                             <RadioGroupItem value="3" id="q3" />
                             <div>
-                                <p className="font-bold">3 Unidades por</p>
+                                <p className="font-bold">3 Unidades</p>
                                 <p className="text-sm text-muted-foreground">{getPriceDescription(3)}</p>
                             </div>
                         </div>

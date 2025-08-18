@@ -23,9 +23,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import { MiniProductCard } from '@/components/mini-product-card';
 import { Trash2, Loader2, Info, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -166,7 +165,7 @@ export default function CheckoutPage() {
   const suggestedProducts = useMemo(() => {
     if (allProducts.length === 0) return [];
     const cartItemIds = new Set(cartItems.map(item => item.id));
-    return allProducts.filter(p => !cartItemIds.has(p.id)).sort(() => 0.5 - Math.random()).slice(0, 6);
+    return allProducts.filter(p => !cartItemIds.has(p.id)).sort(() => 0.5 - Math.random()).slice(0, 8);
   }, [cartItems, allProducts]);
 
   const formatPrice = (price: number) => {
@@ -361,7 +360,7 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex-1">
                                 <p className="font-semibold text-sm">{item.name}</p>
-                                <p className="text-sm font-bold text-primary">{formatPrice(item.price)}</p>
+                                <p className="text-sm font-bold text-primary">{formatPrice(item.price)} c/u</p>
                                 <div className="flex items-center gap-2 mt-1">
                                     <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>-</Button>
                                     <span className="w-4 text-center font-medium text-sm">{item.quantity}</span>
@@ -461,6 +460,7 @@ export default function CheckoutPage() {
                 <h2 className="font-headline text-xl text-center font-bold mb-4">Que no se te olvide acompañar tu compra de...</h2>
                 <Carousel
                     opts={{ align: "start", loop: true, }}
+                    plugins={[ Autoplay({ delay: 3000, stopOnInteraction: false }) ]}
                     className="w-full"
                 >
                     <CarouselContent className="-ml-2">
@@ -470,8 +470,6 @@ export default function CheckoutPage() {
                         </CarouselItem>
                     ))}
                     </CarouselContent>
-                    <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8" />
-                    <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8" />
                 </Carousel>
             </div>
         </div>

@@ -17,6 +17,24 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+
+// Helper function to get the correct price based on quantity and available offers
+const getPriceForQuantity = (product: Product, quantity: number): number => {
+    // Priority: Bundle prices first
+    if (quantity >= 3 && product.priceFor3 && product.priceFor3 > 0) return product.priceFor3 / 3;
+    if (quantity === 2 && product.priceFor2 && product.priceFor2 > 0) return product.priceFor2 / 2;
+    if (quantity === 1 && product.priceFor1 && product.priceFor1 > 0) return product.priceFor1;
+
+    // Then, percentage-based offer
+    if (product.offerPercentage && product.offerPercentage > 0) {
+        return product.price * (1 - product.offerPercentage / 100);
+    }
+    
+    // Finally, the base price
+    return product.price;
+};
+
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
@@ -42,15 +60,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   
   const addToCart = (product: Product, quantityToAdd = 1, unitPrice?: number) => {
     
-    const price = unitPrice !== undefined ? unitPrice : (product.offerPercentage && product.offerPercentage > 0 ? product.price * (1 - product.offerPercentage / 100) : product.price);
+    // If a specific unit price is provided (e.g., from a bundle deal), use it. Otherwise, calculate it.
+    const price = unitPrice !== undefined ? unitPrice : getPriceForQuantity(product, quantityToAdd);
 
     setCartItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       
       let newItems;
       if (existingItem) {
+        const newQuantity = existingItem.quantity + quantityToAdd;
+        const newPrice = getPriceForQuantity(product, newQuantity); // Recalculate price for new total quantity
         newItems = prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantityToAdd, price } : item
+          item.id === product.id ? { ...item, quantity: newQuantity, price: newPrice } : item
         );
       } else {
         newItems = [...prevItems, { ...product, quantity: quantityToAdd, price }];
@@ -83,9 +104,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     setCartItems((prevItems) => 
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity: quantity } : item
-      )
+      prevItems.map((item) => {
+        if (item.id === productId) {
+            // Recalculate the price based on the new quantity
+            const newPrice = getPriceForQuantity(item, quantity);
+            return { ...item, quantity: quantity, price: newPrice };
+        }
+        return item;
+      })
     );
   };
 
