@@ -1,11 +1,12 @@
 
 import Link from "next/link";
-import { TreePine, Phone } from "lucide-react";
+import { TreePine, Phone, Instagram } from "lucide-react";
 import { categories } from "@/lib/constants";
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { SiteImages } from '@/lib/types';
 import Image from 'next/image';
+import { TiktokIcon } from "./tiktok-icon";
 
 
 function slugify(text: string) {
@@ -28,8 +29,6 @@ async function getSiteImages(): Promise<SiteImages> {
             logo: "",
             favicon: "",
             paymentMethods: "",
-            instagramIcon: "",
-            tiktokIcon: ""
         };
     }
 }
@@ -90,16 +89,12 @@ export async function SiteFooter() {
           </div>
           <div className="border-t mt-8 pt-6 flex flex-col items-center gap-4 text-center text-sm text-muted-foreground">
             <div className="flex items-center space-x-6">
-                {siteImages.instagramIcon && (
                 <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
-                    <Image src={siteImages.instagramIcon} alt="Instagram" width={24} height={24} className="transition-opacity hover:opacity-80" />
+                    <Instagram className="h-6 w-6 text-foreground transition-opacity hover:opacity-80" />
                 </a>
-                )}
-                {siteImages.tiktokIcon && (
                 <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
-                    <Image src={siteImages.tiktokIcon} alt="TikTok" width={24} height={24} className="transition-opacity hover:opacity-80" />
+                    <TiktokIcon className="h-6 w-6 text-foreground transition-opacity hover:opacity-80" />
                 </a>
-                )}
             </div>
             <p>© {new Date().getFullYear()} MADERAS NATIVO SUR. Todos los derechos reservados.</p>
           </div>
