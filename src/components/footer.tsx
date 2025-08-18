@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { TreePine, Phone } from "lucide-react";
+import { TreePine, Phone, Instagram } from "lucide-react";
 import { categories } from "@/lib/constants";
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -49,6 +49,16 @@ export async function SiteFooter() {
               <p className="text-sm text-muted-foreground">
                 Artesanía en madera que cuenta una historia. Desde Frutillar, Chile, al mundo.
               </p>
+               <div className="flex items-center space-x-4 pt-2">
+                  <a href="https://www.instagram.com/m_nativo_sur?igsh=MTJqMHpnbzV1ZW1lbQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram de Nativo Sur">
+                    <Instagram className="h-6 w-6 text-muted-foreground transition-colors hover:text-pink-500" />
+                  </a>
+                  <a href="https://www.tiktok.com/@nativo_sur_2112" target="_blank" rel="noopener noreferrer" aria-label="TikTok de Nativo Sur">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-muted-foreground transition-colors hover:text-foreground">
+                        <path d="M21 7.5a1.9 1.9 0 0 1-2.3 1.2c-.4-.1-.8-.4-1-.7a5.3 5.3 0 0 0-3.1-4.1 4.9 4.9 0 0 0-5.1 1.6A5.4 5.4 0 0 0 7.8 12v5a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4V7.5a1.4 1.4 0 0 1 1.2-1.2Z" />
+                    </svg>
+                  </a>
+              </div>
                {siteImages.paymentMethods && (
                 <div className="pt-4">
                   <Image src={siteImages.paymentMethods} alt="Métodos de pago" width={255} height={50} style={{ objectFit: 'contain' }} />
@@ -91,7 +101,7 @@ export async function SiteFooter() {
           </div>
         </div>
         <Link
-          href="https://wa.me/56912345678"
+          href="https://wa.me/56959328956"
           target="_blank"
           className="fixed bottom-6 right-6 group"
           aria-label="Contáctanos por WhatsApp"

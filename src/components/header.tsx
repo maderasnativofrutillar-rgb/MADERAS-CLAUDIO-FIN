@@ -131,9 +131,9 @@ export function SiteHeader({ logo }: SiteHeaderProps) {
                   <Mail className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground group-hover:text-primary transition-colors">morenosasesorias@gmail.com</span>
               </a>
-              <a href="https://wa.me/56912345678" target="_blank" className="flex items-center gap-2 text-xs group">
+              <a href="https://wa.me/56959328956" target="_blank" className="flex items-center gap-2 text-xs group">
                   <Phone className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-foreground group-hover:text-primary transition-colors">+56 9 1234 5678</span>
+                  <span className="font-medium text-foreground group-hover:text-primary transition-colors">+56 9 5932 8956</span>
               </a>
           </div>
 
